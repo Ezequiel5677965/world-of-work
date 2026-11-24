@@ -63,10 +63,10 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 print:p-0 print:bg-white print:static print:z-auto">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full border border-slate-200 overflow-hidden flex flex-col my-4 print:my-0 print:border-none print:shadow-none print:max-w-full">
-        {/* Barra superior de acciones (Oculta al imprimir) */}
-        <div className="flex flex-wrap items-center justify-between px-6 py-3.5 bg-slate-900 text-white gap-3 no-print">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/80 backdrop-blur-xs flex items-start justify-center p-2 sm:p-6 print:p-0 print:bg-white print:static print:z-auto">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full border border-slate-200 overflow-hidden flex flex-col my-2 sm:my-6 print:my-0 print:border-none print:shadow-none print:max-w-full">
+        {/* Barra superior de acciones (Sticky en la parte superior y siempre visible) */}
+        <div className="sticky top-0 z-30 flex flex-wrap items-center justify-between px-4 sm:px-6 py-3.5 bg-slate-900 text-white gap-3 border-b border-slate-800 shadow-md no-print">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
               Vista de Presupuesto Formal

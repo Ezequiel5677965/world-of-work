@@ -77,8 +77,8 @@ export const PriceCatalogModal: React.FC<PriceCatalogModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 no-print">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-start justify-center p-3 sm:p-6 no-print">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full border border-slate-200 overflow-hidden flex flex-col my-2 sm:my-6 max-h-[90vh]">
         {/* Cabecera */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/70">
           <div className="flex items-center gap-2.5">
