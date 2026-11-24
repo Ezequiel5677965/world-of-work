@@ -61,11 +61,12 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-xs flex items-start justify-center p-2 sm:p-6 print:p-0 print:bg-white print:static print:z-auto">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full border border-slate-300 flex flex-col my-2 sm:my-6 print:my-0 print:border-none print:shadow-none print:max-w-full">
+      <div className="bg-white shadow-2xl max-w-4xl w-full border border-slate-300 flex flex-col my-2 sm:my-6 print:my-0 print:border-none print:shadow-none print:max-w-full">
+        
         {/* Barra superior de herramientas (Sticky y siempre a mano) */}
-        <div className="sticky top-0 z-30 flex flex-wrap items-center justify-between px-4 sm:px-6 py-3 bg-slate-900 text-white gap-3 border-b border-slate-800 shadow-md no-print rounded-t-xl">
+        <div className="sticky top-0 z-30 flex flex-wrap items-center justify-between px-4 sm:px-6 py-3 bg-slate-900 text-white gap-3 border-b border-slate-800 shadow-md no-print">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 bg-amber-500/20 text-amber-400 rounded-md">
+            <div className="p-1.5 bg-amber-500/20 text-amber-400">
               <FileCheck2 className="w-4 h-4" />
             </div>
             <div>
@@ -81,7 +82,7 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={handlePrint}
-              className="px-3.5 py-1.5 text-xs font-bold rounded-md bg-amber-500 hover:bg-amber-600 text-slate-950 flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+              className="px-3.5 py-1.5 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 flex items-center gap-1.5 transition shadow-xs cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Imprimir / Descargar PDF</span>
@@ -89,7 +90,7 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
 
             <button
               onClick={handleWhatsApp}
-              className="px-3.5 py-1.5 text-xs font-bold rounded-md bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+              className="px-3.5 py-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 transition shadow-xs cursor-pointer"
             >
               <Share2 className="w-3.5 h-3.5" />
               <span>Enviar por WhatsApp</span>
@@ -97,7 +98,7 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
 
             <button
               onClick={handleCopyText}
-              className="px-3 py-1.5 text-xs font-medium rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1.5 transition cursor-pointer"
+              className="px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1.5 transition cursor-pointer"
               title="Copiar texto resumen"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -106,7 +107,7 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
 
             <button
               onClick={onEdit}
-              className="px-3 py-1.5 text-xs font-medium rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1.5 transition cursor-pointer"
+              className="px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1.5 transition cursor-pointer"
             >
               <Edit3 className="w-3.5 h-3.5" />
               <span>Editar</span>
@@ -114,39 +115,39 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
 
             <button
               onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-md transition cursor-pointer ml-1"
+              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer ml-1"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        {/* DOCUMENTO FORMAL IMPRIMIBLE (ESTILO MEMBRETE DE INGENIERÍA Y CONSTRUCCIÓN) */}
+        {/* DOCUMENTO FORMAL IMPRIMIBLE - 100% LÍNEAS RECTAS Y BORDES RECTOS DE INGENIERÍA */}
         <div className="p-8 sm:p-12 bg-white print:p-0 text-slate-900 font-sans print-container">
           
-          {/* Filete superior institucional */}
-          <div className="h-2 bg-gradient-to-r from-slate-900 via-slate-800 to-amber-600 mb-8 rounded-xs print:mb-6"></div>
+          {/* Filete superior institucional (Recto) */}
+          <div className="h-2 bg-slate-900 mb-8 border-b-2 border-amber-600 print:mb-6"></div>
 
           {/* CABECERA / MEMBRETE CORPORATIVO */}
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 pb-6 border-b-2 border-slate-900 items-start">
             {/* Identidad de la Empresa */}
             <div className="sm:col-span-7 space-y-1.5">
-              <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-lg bg-slate-900 text-amber-400 flex items-center justify-center font-black text-lg border border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-slate-900 text-amber-400 flex items-center justify-center font-black text-lg border border-slate-900 shrink-0">
                   <HardHat className="w-5 h-5" />
                 </div>
                 <div>
                   <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-950 uppercase leading-none">
                     {companySettings.companyName || 'MAQUINITA & MOVIMIENTO DE SUELO'}
                   </h1>
-                  <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest block mt-0.5">
+                  <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest block mt-1">
                     Servicios de Ingeniería Vial • Excavaciones • Movimiento de Suelos
                   </span>
                 </div>
               </div>
 
               {/* Ficha institucional de la empresa */}
-              <div className="text-[11px] text-slate-600 pt-2 grid grid-cols-2 gap-x-4 gap-y-0.5 border-t border-slate-200 mt-2">
+              <div className="text-[11px] text-slate-600 pt-2 grid grid-cols-2 gap-x-4 gap-y-0.5 border-t border-slate-300 mt-2">
                 {companySettings.ownerName && (
                   <p><span className="font-semibold text-slate-800">Titular/Resp:</span> {companySettings.ownerName}</p>
                 )}
@@ -165,11 +166,11 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
               </div>
             </div>
 
-            {/* Cuadro Oficial de Presupuesto */}
-            <div className="sm:col-span-5 border border-slate-300 rounded-lg overflow-hidden bg-slate-50/70">
+            {/* Cuadro Oficial de Presupuesto (Líneas rectas, sin bordes curvos) */}
+            <div className="sm:col-span-5 border border-slate-400 bg-white">
               <div className="bg-slate-900 text-white text-center py-1 px-3">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400">
-                  Presupuesto Comercial
+                  Presupuesto Comercial Oficial
                 </span>
               </div>
               <div className="p-3 text-xs space-y-1.5 font-mono">
@@ -193,17 +194,17 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
             </div>
           </div>
 
-          {/* CUADROS ESTRUCTURADOS: COMITENTE Y EMPLAZAMIENTO DE OBRA */}
+          {/* CUADROS ESTRUCTURADOS: COMITENTE Y EMPLAZAMIENTO DE OBRA (100% LÍNEAS RECTAS) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-5">
             {/* Datos del Cliente */}
-            <div className="border border-slate-300 rounded-lg overflow-hidden">
-              <div className="bg-slate-100/90 border-b border-slate-200 px-3 py-1.5">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700">
+            <div className="border border-slate-400 bg-white">
+              <div className="bg-slate-100 border-b border-slate-300 px-3 py-1.5">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-800">
                   1. Datos del Comitente / Cliente
                 </span>
               </div>
               <div className="p-3 text-xs space-y-1">
-                <p className="text-slate-900 font-bold text-sm">
+                <p className="text-slate-950 font-bold text-sm">
                   {budget.client.name || 'Cliente Particular'}
                 </p>
                 {budget.client.phone && (
@@ -225,14 +226,14 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
             </div>
 
             {/* Datos de la Obra */}
-            <div className="border border-slate-300 rounded-lg overflow-hidden">
-              <div className="bg-slate-100/90 border-b border-slate-200 px-3 py-1.5">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700">
+            <div className="border border-slate-400 bg-white">
+              <div className="bg-slate-100 border-b border-slate-300 px-3 py-1.5">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-800">
                   2. Emplazamiento y Objeto de los Trabajos
                 </span>
               </div>
               <div className="p-3 text-xs space-y-1">
-                <p className="text-slate-900 font-bold text-sm">
+                <p className="text-slate-950 font-bold text-sm">
                   {budget.project.title || getWorkTypeLabel(budget.project.type)}
                 </p>
                 <p className="text-slate-600">
@@ -255,39 +256,39 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
 
           {/* MEMORIA TÉCNICA VOLUMÉTRICA (CÓMPUTO DE SUELO DE INGENIERÍA) */}
           {budget.soilCalculation && budget.soilCalculation.bankVolumeM3 > 0 && (
-            <div className="border border-slate-300 rounded-lg overflow-hidden mb-5">
-              <div className="bg-slate-100/90 border-b border-slate-200 px-3 py-1.5 flex justify-between items-center">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700">
+            <div className="border border-slate-400 bg-white mb-5">
+              <div className="bg-slate-100 border-b border-slate-300 px-3 py-1.5 flex justify-between items-center">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-800">
                   3. Memoria Técnica y Cómputo Volumétrico Estimado
                 </span>
-                <span className="text-[10px] font-bold text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-700 bg-white px-2 py-0.5 border border-slate-300">
                   Parámetros de Suelo
                 </span>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-5 divide-x divide-y sm:divide-y-0 divide-slate-200 text-center bg-white text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-5 divide-x divide-y sm:divide-y-0 divide-slate-300 text-center bg-white text-xs">
                 <div className="p-2.5">
                   <span className="text-[10px] font-semibold text-slate-500 block uppercase">Superficie</span>
-                  <span className="font-bold text-slate-900 text-sm">{budget.soilCalculation.areaM2}</span>
+                  <span className="font-bold text-slate-950 text-sm">{budget.soilCalculation.areaM2}</span>
                   <span className="text-[10px] text-slate-500 ml-0.5">m²</span>
                 </div>
                 <div className="p-2.5">
                   <span className="text-[10px] font-semibold text-slate-500 block uppercase">Cota / Espesor</span>
-                  <span className="font-bold text-slate-900 text-sm">{budget.soilCalculation.depth}</span>
+                  <span className="font-bold text-slate-950 text-sm">{budget.soilCalculation.depth}</span>
                   <span className="text-[10px] text-slate-500 ml-0.5">m</span>
                 </div>
                 <div className="p-2.5">
                   <span className="text-[10px] font-semibold text-slate-500 block uppercase">Vol. en Banco</span>
-                  <span className="font-bold text-slate-900 text-sm">{budget.soilCalculation.bankVolumeM3}</span>
+                  <span className="font-bold text-slate-950 text-sm">{budget.soilCalculation.bankVolumeM3}</span>
                   <span className="text-[10px] text-slate-500 ml-0.5">m³</span>
                 </div>
                 <div className="p-2.5">
                   <span className="text-[10px] font-semibold text-slate-500 block uppercase">
                     Vol. Esponjado (+{budget.soilCalculation.customSwellPercent}%)
                   </span>
-                  <span className="font-bold text-slate-900 text-sm">{budget.soilCalculation.looseVolumeM3}</span>
+                  <span className="font-bold text-slate-950 text-sm">{budget.soilCalculation.looseVolumeM3}</span>
                   <span className="text-[10px] text-slate-500 ml-0.5">m³</span>
                 </div>
-                <div className="p-2.5 col-span-2 sm:col-span-1 bg-slate-50/70">
+                <div className="p-2.5 col-span-2 sm:col-span-1 bg-slate-50">
                   <span className="text-[10px] font-semibold text-slate-500 block uppercase">Plan Logístico</span>
                   <span className="font-extrabold text-slate-950 text-sm">{budget.soilCalculation.truckTrips}</span>
                   <span className="text-[10px] text-slate-600 block leading-tight">
@@ -298,43 +299,43 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
             </div>
           )}
 
-          {/* PLANILLA DE CÓMPUTO Y PRESUPUESTO DETALLADA */}
-          <div className="border border-slate-300 rounded-lg overflow-hidden mb-5">
-            <div className="bg-slate-100/90 border-b border-slate-200 px-3 py-1.5">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700">
+          {/* PLANILLA DE CÓMPUTO Y PRESUPUESTO DETALLADA (LÍNEAS RECTAS) */}
+          <div className="border border-slate-400 bg-white mb-5">
+            <div className="bg-slate-100 border-b border-slate-300 px-3 py-1.5">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-800">
                 4. Planilla de Trabajos, Maquinaria y Suministros
               </span>
             </div>
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-900 text-white font-bold uppercase tracking-wider text-[10px] border-b border-slate-800">
-                  <th className="py-2.5 px-3 w-12 text-center">Ítem</th>
-                  <th className="py-2.5 px-3">Descripción de Tareas / Equipamiento</th>
-                  <th className="py-2.5 px-3 text-center w-20">Cantidad</th>
-                  <th className="py-2.5 px-3 text-center w-16">Unidad</th>
-                  <th className="py-2.5 px-3 text-right w-32">Precio Unit. (ARS)</th>
+                  <th className="py-2.5 px-3 w-12 text-center border-r border-slate-800">Ítem</th>
+                  <th className="py-2.5 px-3 border-r border-slate-800">Descripción de Tareas / Equipamiento</th>
+                  <th className="py-2.5 px-3 text-center w-20 border-r border-slate-800">Cantidad</th>
+                  <th className="py-2.5 px-3 text-center w-16 border-r border-slate-800">Unidad</th>
+                  <th className="py-2.5 px-3 text-right w-32 border-r border-slate-800">Precio Unit. (ARS)</th>
                   <th className="py-2.5 px-3 text-right w-36">Subtotal Neto</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {budget.items.map((item, idx) => (
-                  <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'}>
-                    <td className="py-2.5 px-3 font-mono text-slate-500 text-center font-bold text-[11px]">
+                  <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}>
+                    <td className="py-2.5 px-3 font-mono text-slate-600 text-center font-bold text-[11px] border-r border-slate-200">
                       {String(idx + 1).padStart(2, '0')}
                     </td>
-                    <td className="py-2.5 px-3">
+                    <td className="py-2.5 px-3 border-r border-slate-200">
                       <p className="font-bold text-slate-950 text-xs">{item.name}</p>
                       {item.description && (
                         <p className="text-[11px] text-slate-600 mt-0.5 leading-snug">{item.description}</p>
                       )}
                     </td>
-                    <td className="py-2.5 px-3 text-center font-mono font-bold text-slate-900">
+                    <td className="py-2.5 px-3 text-center font-mono font-bold text-slate-900 border-r border-slate-200">
                       {item.quantity}
                     </td>
-                    <td className="py-2.5 px-3 text-center text-slate-600 font-medium text-[11px]">
+                    <td className="py-2.5 px-3 text-center text-slate-600 font-medium text-[11px] border-r border-slate-200">
                       {item.unit}
                     </td>
-                    <td className="py-2.5 px-3 text-right font-mono text-slate-800">
+                    <td className="py-2.5 px-3 text-right font-mono text-slate-800 border-r border-slate-200">
                       {formatCurrency(item.unitPrice, companySettings.currency)}
                     </td>
                     <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-950">
@@ -346,13 +347,13 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
             </table>
           </div>
 
-          {/* LIQUIDACIÓN ECONÓMICA Y CONDICIONES (CUADRO DE CIERRE) */}
+          {/* LIQUIDACIÓN ECONÓMICA Y CONDICIONES (CUADRO DE CIERRE - 100% RECTO) */}
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-start break-inside-avoid">
             {/* Condiciones Comerciales, Plazos y Operatoria */}
             <div className="sm:col-span-7 space-y-3">
-              <div className="border border-slate-300 rounded-lg overflow-hidden">
-                <div className="bg-slate-100/90 border-b border-slate-200 px-3 py-1.5">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700">
+              <div className="border border-slate-400 bg-white">
+                <div className="bg-slate-100 border-b border-slate-300 px-3 py-1.5">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-800">
                     5. Condiciones Comerciales y Protocolo de Ejecución
                   </span>
                 </div>
@@ -374,7 +375,7 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
                   {companySettings.bankInfo && (
                     <div className="pt-1.5 border-t border-slate-200">
                       <span className="font-bold text-slate-900 block text-[11px]">c) Datos para Transferencia Bancaria:</span>
-                      <p className="font-mono text-slate-800 text-[11px] bg-slate-50 p-1.5 rounded border border-slate-200 mt-0.5">
+                      <p className="font-mono text-slate-800 text-[11px] bg-slate-50 p-2 border border-slate-300 mt-0.5">
                         {companySettings.bankInfo}
                       </p>
                     </div>
@@ -389,8 +390,8 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
               </div>
             </div>
 
-            {/* Cuadro Financiero de Cierre (Balance de Totales) */}
-            <div className="sm:col-span-5 border-2 border-slate-900 rounded-lg overflow-hidden bg-slate-50/70">
+            {/* Cuadro Financiero de Cierre (Líneas rectas firmes) */}
+            <div className="sm:col-span-5 border-2 border-slate-900 bg-white">
               <div className="bg-slate-900 text-white px-3 py-1.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">
                   Liquidación Económica Final
@@ -442,16 +443,16 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
           </div>
 
           {/* FIRMAS Y CONFORMIDAD INSTITUCIONAL */}
-          <div className="mt-14 pt-6 border-t border-slate-300 grid grid-cols-2 gap-12 text-xs break-inside-avoid">
+          <div className="mt-14 pt-6 border-t border-slate-400 grid grid-cols-2 gap-12 text-xs break-inside-avoid">
             <div className="text-center">
-              <div className="h-12 border-b border-slate-400 mb-2"></div>
+              <div className="h-12 border-b border-slate-500 mb-2"></div>
               <p className="font-bold text-slate-900 uppercase text-[11px]">Por la Empresa Contratista</p>
               <p className="text-[10px] text-slate-500">{companySettings.ownerName || 'Responsable Técnico / Comercial'}</p>
               <p className="text-[10px] text-slate-400">{companySettings.companyName || 'Movimiento de Suelo'}</p>
             </div>
 
             <div className="text-center">
-              <div className="h-12 border-b border-slate-400 mb-2"></div>
+              <div className="h-12 border-b border-slate-500 mb-2"></div>
               <p className="font-bold text-slate-900 uppercase text-[11px]">Aceptación y Conformidad del Comitente</p>
               <p className="text-[10px] text-slate-500">Firma, Aclaración y DNI / CUIT</p>
               <p className="text-[10px] text-slate-400">Fecha de Aprobación: _____ / _____ / 202___</p>
@@ -459,9 +460,9 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
           </div>
 
           {/* Pie de página de documento */}
-          <div className="mt-8 pt-3 border-t border-slate-200 flex justify-between items-center text-[10px] text-slate-400 font-mono break-inside-avoid">
+          <div className="mt-8 pt-3 border-t border-slate-300 flex justify-between items-center text-[10px] text-slate-400 font-mono break-inside-avoid">
             <div className="flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
+              <ShieldCheck className="w-3.5 h-3.5 text-slate-500" />
               <span className="font-sans">Documento oficial emitido bajo normas y especificaciones de obra vial</span>
             </div>
             <span>Página 1 de 1 • Ref: {budget.code}</span>
