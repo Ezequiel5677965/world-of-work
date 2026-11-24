@@ -32,40 +32,35 @@ export function calculateExpiryDate(dateString: string, validityDays: number): s
       year: 'numeric'
     });
   } catch {
-    return '15 días posteriores';
+    return '15 dias';
   }
 }
 
 export function generateWhatsAppMessage(budget: Budget, companyName: string): string {
   const lineItemsText = budget.items
-    .map((item, idx) => `  ${idx + 1}. ${item.name} (${item.quantity} ${item.unit}) -> ${formatCurrency(item.total)}`)
+    .map((item, idx) => `  ${idx + 1}) ${item.name} (${item.quantity} ${item.unit}): ${formatCurrency(item.total)}`)
     .join('\n');
 
-  let soilSummary = '';
-  if (budget.soilCalculation && budget.soilCalculation.bankVolumeM3 > 0) {
-    const sc = budget.soilCalculation;
-    soilSummary = `\n📐 *MEMORIA TÉCNICA:*
-  • Área de intervención: ${sc.areaM2} m²
-  • Volumen en banco: ${sc.bankVolumeM3} m³
-  • Volumen esponjado (+${sc.customSwellPercent}%): ${sc.looseVolumeM3} m³
-  • Logística estimada: ${sc.truckTrips} viajes de camión (${sc.truckCapacityM3} m³/viaje)\n`;
-  }
+  const expiry = calculateExpiryDate(budget.createdAt, budget.validityDays);
 
-  const message = `*COTIZACIÓN COMERCIAL - ${companyName}*
-📄 *Presupuesto Nº:* ${budget.code}
-📅 *Fecha de Emisión:* ${formatDate(budget.createdAt)}
-⏳ *Validez:* ${budget.validityDays} días corridos (hasta ${calculateExpiryDate(budget.createdAt, budget.validityDays)})
+  const message = `*PRESUPUESTO - ${companyName || 'MOVIMIENTO DE SUELO'}*
+---------------------------------------------
+*Presupuesto Nº:* ${budget.code}
+*Fecha:* ${formatDate(budget.createdAt)}
+*Validez:* ${budget.validityDays} dias (hasta ${expiry})
 
-👤 *Comitente / Cliente:* ${budget.client.name}
-📍 *Emplazamiento de Obra:* ${budget.project.location || budget.project.title || 'Según lo conversado'}
-${soilSummary}
-📋 *Planilla de Trabajos y Equipamiento:*
-${lineItemsText}
-
-💵 *TOTAL GENERAL: ${formatCurrency(budget.total)}*
-📌 *Condiciones:* ${budget.paymentTerms || '50% anticipo al inicio, saldo contra finalización.'}
-
-_Propuesta formal sujeta a confirmación técnica de equipos y transitabilidad climática._`;
+*Cliente:* ${budget.client.name || 'Particular'}
+*Obra:* ${budget.project.location || 'En obra'}
+*Trabajo:* ${budget.project.title || 'Movimiento de Suelo'}
+---------------------------------------------
+*DETALLE DE TRABAJOS Y EQUIPOS:*
+${lineItemsText || '  (Sin items cargados)'}
+---------------------------------------------
+*TOTAL A PAGAR: ${formatCurrency(budget.total)}*
+---------------------------------------------
+*Forma de Pago:* ${budget.paymentTerms || '50% de anticipo al inicio, saldo al finalizar los trabajos.'}
+${budget.generalNotes ? `*Observaciones:* ${budget.generalNotes}\n` : ''}
+Quedamos a disposicion para coordinar el inicio de los trabajos.`;
 
   return encodeURIComponent(message);
 }
