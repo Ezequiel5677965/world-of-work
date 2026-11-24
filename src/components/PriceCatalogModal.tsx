@@ -18,7 +18,7 @@ export const PriceCatalogModal: React.FC<PriceCatalogModalProps> = ({
   catalog,
   onSave,
 }) => {
-  const [activeTab, setActiveTab] = useState<'empresa' | 'tarifas'>('tarifas');
+  const [activeTab, setActiveTab] = useState<'tarifas' | 'empresa'>('tarifas');
   const [formSettings, setFormSettings] = useState<CompanySettings>(settings);
   const [formCatalog, setFormCatalog] = useState<PriceCatalogItem[]>(catalog);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -51,7 +51,7 @@ export const PriceCatalogModal: React.FC<PriceCatalogModalProps> = ({
       name: newItemName.trim(),
       unit: newItemUnit,
       defaultPrice: Math.max(0, newItemPrice),
-      description: 'Ítem personalizado de la empresa.'
+      description: 'Ítem personalizado.'
     };
 
     setFormCatalog(prev => [...prev, newItem]);
@@ -77,112 +77,113 @@ export const PriceCatalogModal: React.FC<PriceCatalogModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-start justify-center p-3 sm:p-6 no-print">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full border border-slate-200 overflow-hidden flex flex-col my-2 sm:my-6 max-h-[90vh]">
-        {/* Cabecera */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/70">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-xs flex items-start justify-center p-2 sm:p-6 no-print">
+      <div className="bg-white max-w-3xl w-full border-2 border-slate-900 flex flex-col my-2 sm:my-6 max-h-[92vh] shadow-2xl">
+        
+        {/* Cabecera Estilo Bobcat */}
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b-2 border-slate-900 bg-slate-950 text-white">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-xs">
+            <div className="p-1.5 bg-[#e1261c] text-white">
               <Building2 className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900">
-                Configuración y Lista de Precios
+              <h2 className="text-sm font-black uppercase tracking-tight">
+                Tarifas & Datos de Empresa
               </h2>
-              <p className="text-xs text-slate-500">
-                Personalizá los datos de tu empresa y las tarifas de tus máquinas y servicios
+              <p className="text-[10px] text-slate-400 font-mono">
+                Valores base por defecto para Bobcat y obras
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-lg transition"
+            className="p-1 text-slate-400 hover:text-white transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-slate-200 px-6 bg-white gap-6">
+        <div className="flex border-b border-slate-300 px-4 sm:px-6 bg-slate-100 gap-4">
           <button
             onClick={() => setActiveTab('tarifas')}
-            className={`py-3 text-xs font-bold border-b-2 flex items-center gap-2 transition ${
+            className={`py-2.5 text-xs font-black uppercase tracking-wider border-b-2 flex items-center gap-1.5 transition cursor-pointer ${
               activeTab === 'tarifas'
-                ? 'border-amber-500 text-amber-900'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                ? 'border-[#e1261c] text-[#e1261c]'
+                : 'border-transparent text-slate-600 hover:text-slate-950'
             }`}
           >
-            <DollarSign className="w-4 h-4" />
-            <span>Lista de Precios Base ({formCatalog.length})</span>
+            <DollarSign className="w-3.5 h-3.5" />
+            <span>Precios de Máquinas ({formCatalog.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('empresa')}
-            className={`py-3 text-xs font-bold border-b-2 flex items-center gap-2 transition ${
+            className={`py-2.5 text-xs font-black uppercase tracking-wider border-b-2 flex items-center gap-1.5 transition cursor-pointer ${
               activeTab === 'empresa'
-                ? 'border-amber-500 text-amber-900'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                ? 'border-[#e1261c] text-[#e1261c]'
+                : 'border-transparent text-slate-600 hover:text-slate-950'
             }`}
           >
-            <Building2 className="w-4 h-4" />
-            <span>Datos de la Empresa / Membrete</span>
+            <Building2 className="w-3.5 h-3.5" />
+            <span>Datos de Membrete</span>
           </button>
         </div>
 
         {/* Contenido scrolleable */}
-        <div className="p-6 overflow-y-auto flex-1">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
           {activeTab === 'tarifas' && (
-            <div className="space-y-6">
-              {/* Categorías */}
+            <div className="space-y-5">
               {(['maquinaria', 'transporte', 'material', 'mano_de_obra'] as ItemCategory[]).map(cat => {
                 const itemsInCat = formCatalog.filter(i => i.category === cat);
                 if (itemsInCat.length === 0) return null;
 
                 const catTitles: Record<ItemCategory, string> = {
-                  maquinaria: '🚜 Maquinaria Pesada y Compactación',
+                  maquinaria: '🚜 Maquinaria & Compactación (Bobcat / Equipos)',
                   transporte: '🚚 Camiones, Volquetes y Fletes en Carretón',
-                  material: '⛰️ Áridos, Tosca y Rellenos de Suelo',
+                  material: '⛰️ Áridos, Tosca y Relleno de Suelo',
                   mano_de_obra: '👷 Mano de Obra y Servicios Especializados',
                   personalizado: 'Otros'
                 };
 
                 return (
-                  <div key={cat} className="space-y-2">
-                    <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
+                  <div key={cat} className="space-y-1.5">
+                    <h3 className="text-[11px] font-black uppercase tracking-wider text-slate-900 border-b border-slate-300 pb-1">
                       {catTitles[cat]}
                     </h3>
-                    <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-slate-50/50 overflow-hidden">
+                    <div className="divide-y divide-slate-200 border border-slate-300 bg-white">
                       {itemsInCat.map(item => (
-                        <div key={item.id} className="p-3 flex items-center justify-between gap-3 bg-white hover:bg-slate-50/80 transition">
+                        <div key={item.id} className="p-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-50 transition">
                           <div className="min-w-0 flex-1">
-                            <p className="text-xs font-semibold text-slate-900 truncate">
+                            <p className="text-xs font-bold text-slate-950 truncate">
                               {item.name}
                             </p>
-                            <p className="text-[11px] text-slate-500 truncate">
+                            <p className="text-[10px] text-slate-500 truncate">
                               {item.description}
                             </p>
                           </div>
 
-                          <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                          <div className="flex items-center gap-2 self-end sm:self-auto">
+                            <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 border border-slate-200">
                               / {item.unit}
                             </span>
-                            <div className="relative w-32">
-                              <span className="absolute left-2.5 top-1.5 text-xs font-bold text-slate-400">
+                            <div className="relative w-28">
+                              <span className="absolute left-2 top-1 text-xs font-mono font-bold text-slate-400">
                                 $
                               </span>
                               <input
                                 type="number"
+                                inputMode="decimal"
                                 value={item.defaultPrice || ''}
                                 onChange={(e) => handlePriceChange(item.id, parseFloat(e.target.value) || 0)}
-                                className="w-full pl-6 pr-2 py-1 text-xs font-bold text-right rounded-md border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                className="w-full pl-5 pr-2 py-1 text-xs font-mono font-bold text-right border border-slate-300 focus:outline-none focus:border-[#e1261c]"
                               />
                             </div>
                             <button
                               type="button"
                               onClick={() => handleRemoveCatalogItem(item.id)}
-                              className="text-slate-300 hover:text-rose-500 p-1 rounded transition"
+                              className="text-slate-300 hover:text-rose-600 p-1 cursor-pointer"
                               title="Quitar"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -195,27 +196,27 @@ export const PriceCatalogModal: React.FC<PriceCatalogModalProps> = ({
                 );
               })}
 
-              {/* Formulario para agregar nuevo ítem a la lista */}
-              <div className="p-4 rounded-xl border border-dashed border-amber-300 bg-amber-50/30">
-                <h4 className="text-xs font-bold text-slate-800 mb-2 flex items-center gap-1.5">
-                  <Plus className="w-4 h-4 text-amber-600" />
+              {/* Formulario nuevo ítem */}
+              <div className="p-3 border border-slate-300 bg-slate-50">
+                <h4 className="text-[11px] font-black uppercase text-slate-900 mb-2 flex items-center gap-1">
+                  <Plus className="w-3.5 h-3.5 text-[#e1261c]" />
                   <span>Agregar nuevo servicio o material al tarifario</span>
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
                   <div className="sm:col-span-5">
                     <input
                       type="text"
-                      placeholder="Nombre del servicio / máquina"
+                      placeholder="Nombre del servicio"
                       value={newItemName}
                       onChange={(e) => setNewItemName(e.target.value)}
-                      className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white"
+                      className="w-full px-2.5 py-1.5 text-xs font-bold bg-white border border-slate-300"
                     />
                   </div>
                   <div className="sm:col-span-3">
                     <select
                       value={newItemCategory}
                       onChange={(e) => setNewItemCategory(e.target.value as ItemCategory)}
-                      className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white"
+                      className="w-full px-2 py-1.5 text-xs font-bold bg-white border border-slate-300"
                     >
                       <option value="maquinaria">Maquinaria</option>
                       <option value="transporte">Transporte/Flete</option>
@@ -227,12 +228,12 @@ export const PriceCatalogModal: React.FC<PriceCatalogModalProps> = ({
                     <select
                       value={newItemUnit}
                       onChange={(e) => setNewItemUnit(e.target.value as PriceCatalogItem['unit'])}
-                      className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white"
+                      className="w-full px-2 py-1.5 text-xs font-bold bg-white border border-slate-300"
                     >
-                      <option value="hs">hs (horas)</option>
+                      <option value="hs">hs</option>
                       <option value="días">días</option>
-                      <option value="m³">m³</option>
                       <option value="viajes">viajes</option>
+                      <option value="m³">m³</option>
                       <option value="flete">flete</option>
                       <option value="global">global</option>
                     </select>
@@ -240,15 +241,16 @@ export const PriceCatalogModal: React.FC<PriceCatalogModalProps> = ({
                   <div className="sm:col-span-2 flex gap-1">
                     <input
                       type="number"
+                      inputMode="decimal"
                       placeholder="Precio $"
                       value={newItemPrice || ''}
                       onChange={(e) => setNewItemPrice(parseFloat(e.target.value) || 0)}
-                      className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-200 bg-white"
+                      className="w-full px-2 py-1.5 text-xs font-mono font-bold bg-white border border-slate-300"
                     />
                     <button
                       type="button"
                       onClick={handleAddCatalogItem}
-                      className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold transition shrink-0"
+                      className="px-3 py-1.5 bg-slate-950 text-white hover:bg-slate-800 text-xs font-black cursor-pointer"
                     >
                       +
                     </button>
@@ -259,122 +261,97 @@ export const PriceCatalogModal: React.FC<PriceCatalogModalProps> = ({
           )}
 
           {activeTab === 'empresa' && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Nombre de la Empresa o Emprendimiento
+                  <label className="block text-[11px] font-bold uppercase text-slate-700 mb-0.5">
+                    Nombre de la Empresa
                   </label>
                   <input
                     type="text"
                     value={formSettings.companyName}
                     onChange={(e) => setFormSettings({ ...formSettings, companyName: e.target.value })}
-                    className="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500"
+                    className="w-full px-3 py-2 text-xs font-bold border border-slate-300"
                     placeholder="Ej. Maquinita Movimiento de Suelo"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-[11px] font-bold uppercase text-slate-700 mb-0.5">
                     Titular / Responsable
                   </label>
                   <input
                     type="text"
                     value={formSettings.ownerName}
                     onChange={(e) => setFormSettings({ ...formSettings, ownerName: e.target.value })}
-                    className="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500"
+                    className="w-full px-3 py-2 text-xs font-bold border border-slate-300"
                     placeholder="Ej. Ezequiel"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Teléfono / WhatsApp de Contacto
+                  <label className="block text-[11px] font-bold uppercase text-slate-700 mb-0.5">
+                    Teléfono / WhatsApp
                   </label>
                   <input
                     type="text"
+                    inputMode="tel"
                     value={formSettings.phone}
                     onChange={(e) => setFormSettings({ ...formSettings, phone: e.target.value })}
-                    className="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500"
-                    placeholder="Ej. +54 9 11 1234-5678"
+                    className="w-full px-3 py-2 text-xs font-bold border border-slate-300"
+                    placeholder="+54 9 11 1234-5678"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={formSettings.email}
-                    onChange={(e) => setFormSettings({ ...formSettings, email: e.target.value })}
-                    className="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500"
-                    placeholder="contacto@maquinita.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Dirección / Base Operativa
+                  <label className="block text-[11px] font-bold uppercase text-slate-700 mb-0.5">
+                    Localidad / Base
                   </label>
                   <input
                     type="text"
-                    value={formSettings.address}
-                    onChange={(e) => setFormSettings({ ...formSettings, address: e.target.value })}
-                    className="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500"
-                    placeholder="Localidad, Zona, Ruta"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    CUIT / Identificación Fiscal
-                  </label>
-                  <input
-                    type="text"
-                    value={formSettings.cuit}
-                    onChange={(e) => setFormSettings({ ...formSettings, cuit: e.target.value })}
-                    className="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500"
-                    placeholder="20-XXXXXXXX-X"
+                    value={formSettings.city}
+                    onChange={(e) => setFormSettings({ ...formSettings, city: e.target.value })}
+                    className="w-full px-3 py-2 text-xs font-bold border border-slate-300"
+                    placeholder="Buenos Aires"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-[11px] font-bold uppercase text-slate-700 mb-0.5">
                   Datos Bancarios para Cobranzas (Alias / CBU)
                 </label>
                 <input
                   type="text"
                   value={formSettings.bankInfo}
                   onChange={(e) => setFormSettings({ ...formSettings, bankInfo: e.target.value })}
-                  className="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500"
-                  placeholder="Alias: maquinita.suelo / Banco Galicia"
+                  className="w-full px-3 py-2 text-xs font-mono font-bold border border-slate-300"
+                  placeholder="Alias: maquinita.suelo / CBU: ..."
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4 pt-2">
+              <div className="grid grid-cols-2 gap-3 pt-1">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Margen de Ganancia predeterminado (%)
+                  <label className="block text-[11px] font-bold uppercase text-slate-700 mb-0.5">
+                    Margen Ganancia por defecto (%)
                   </label>
                   <input
                     type="number"
                     value={formSettings.defaultMargin}
                     onChange={(e) => setFormSettings({ ...formSettings, defaultMargin: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500"
+                    className="w-full px-3 py-2 text-xs font-bold border border-slate-300"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Validez de Presupuesto predeterminada (Días)
+                  <label className="block text-[11px] font-bold uppercase text-slate-700 mb-0.5">
+                    Validez por defecto (Días)
                   </label>
                   <input
                     type="number"
                     value={formSettings.defaultValidityDays}
                     onChange={(e) => setFormSettings({ ...formSettings, defaultValidityDays: parseInt(e.target.value, 10) || 15 })}
-                    className="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500"
+                    className="w-full px-3 py-2 text-xs font-bold border border-slate-300"
                   />
                 </div>
               </div>
@@ -383,40 +360,40 @@ export const PriceCatalogModal: React.FC<PriceCatalogModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-3 border-t-2 border-slate-900 bg-slate-100 flex items-center justify-between">
           <button
             type="button"
             onClick={handleResetDefaults}
-            className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition"
+            className="text-xs text-slate-600 hover:text-slate-950 flex items-center gap-1 font-bold cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>Restaurar valores sugeridos</span>
+            <span className="hidden sm:inline">Restaurar sugeridos</span>
           </button>
 
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-200 transition"
+              className="px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-slate-950 border border-slate-300 bg-white cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="button"
               onClick={handleSubmit}
-              className={`px-5 py-2 text-xs font-bold rounded-lg text-white transition flex items-center gap-1.5 shadow-sm ${
-                savedSuccess ? 'bg-emerald-600' : 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/25'
+              className={`px-4 py-1.5 text-xs font-black uppercase tracking-wider text-white transition flex items-center gap-1.5 cursor-pointer ${
+                savedSuccess ? 'bg-emerald-600' : 'bg-[#e1261c] hover:bg-[#c81e15]'
               }`}
             >
               {savedSuccess ? (
                 <>
-                  <Check className="w-4 h-4" />
+                  <Check className="w-4 h-4 stroke-[3]" />
                   <span>¡Guardado!</span>
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  <span>Guardar Cambios</span>
+                  <span>Guardar</span>
                 </>
               )}
             </button>

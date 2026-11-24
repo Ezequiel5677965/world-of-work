@@ -18,8 +18,7 @@ import {
   BudgetItem, 
   CompanySettings, 
   PriceCatalogItem, 
-  SoilCalculation,
-  ItemCategory 
+  SoilCalculation 
 } from '../types/budget';
 import { SoilCalculatorCard } from './SoilCalculatorCard';
 import { formatCurrency } from '../utils/formatters';
@@ -116,29 +115,54 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
     const newItem: BudgetItem = {
       id: `item_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       category: 'personalizado',
-      name: 'Nuevo servicio / trabajo de suelo',
+      name: 'Nuevo servicio / trabajo Bobcat',
       description: '',
       quantity: 1,
-      unit: 'global',
+      unit: 'hs',
       unitPrice: 0,
       total: 0
     };
     updateItems([...budget.items, newItem]);
   };
 
-  // Trasladar automáticamente los datos de la calculadora de suelo a la tabla de ítems
+  // Trasladar automáticamente los datos de la calculadora (priorizando Bobcat)
   const handleApplySoilCalc = (calc: SoilCalculation) => {
     setBudget(prev => ({ ...prev, soilCalculation: calc }));
-
-    // Crear o actualizar items sugeridos
     const newItems: BudgetItem[] = [...budget.items];
 
-    // 1. Agregar viajes de camión si calculó viajes
+    // 1. Agregar siempre Bobcat como máquina prioritaria
+    const bobcatItem = catalog.find(c => c.id === 'bobcat_mini') || {
+      id: 'bobcat_mini',
+      category: 'maquinaria' as const,
+      name: 'Minicargadora / Bobcat (por hora)',
+      description: 'Nivelación ágil, espacios reducidos, desparrame de tierra y tosca.',
+      unit: 'hs' as const,
+      defaultPrice: 38000
+    };
+
+    const bobcatHours = calc.estimatedHoursBobcat > 0 ? calc.estimatedHoursBobcat : 4;
+    const existingBobcatIndex = newItems.findIndex(i => i.id === 'bobcat_mini' || i.name.toLowerCase().includes('bobcat'));
+    
+    if (existingBobcatIndex >= 0) {
+      newItems[existingBobcatIndex].quantity = bobcatHours;
+      newItems[existingBobcatIndex].total = bobcatHours * newItems[existingBobcatIndex].unitPrice;
+    } else {
+      newItems.push({
+        id: 'bobcat_mini',
+        category: 'maquinaria',
+        name: bobcatItem.name,
+        description: `Operación con Bobcat estimada para ${calc.bankVolumeM3} m³`,
+        quantity: bobcatHours,
+        unit: 'hs',
+        unitPrice: bobcatItem.defaultPrice,
+        total: bobcatHours * bobcatItem.defaultPrice
+      });
+    }
+
+    // 2. Agregar viajes de camión si calculó viajes
     if (calc.truckTrips > 0) {
       const existingTruckIndex = newItems.findIndex(i => i.name.toLowerCase().includes('camión') || i.name.toLowerCase().includes('camion'));
-      const truckCatalogItem = catalog.find(c => c.category === 'transporte' && c.name.includes(`${calc.truckCapacityM3}`)) ||
-                               catalog.find(c => c.category === 'transporte');
-      const unitPrice = truckCatalogItem?.defaultPrice || 70000;
+      const truckPrice = 65000;
 
       if (existingTruckIndex >= 0) {
         newItems[existingTruckIndex].quantity = calc.truckTrips;
@@ -147,39 +171,12 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
         newItems.push({
           id: `item_truck_${Date.now()}`,
           category: 'transporte',
-          name: `Retiro de suelo con Camión Volcador (${calc.truckCapacityM3} m³)`,
-          description: `Retiro y vuelco de suelo esponjado estimado (${calc.looseVolumeM3} m³ totales)`,
+          name: `Retiro de suelo en Camión Volcador (${calc.truckCapacityM3} m³)`,
+          description: `Retiro de suelo esponjado estimado (${calc.looseVolumeM3} m³)`,
           quantity: calc.truckTrips,
           unit: 'viajes',
-          unitPrice,
-          total: calc.truckTrips * unitPrice
-        });
-      }
-    }
-
-    // 2. Agregar maquinaria sugerida (Bobcat o Retro según tipo de trabajo)
-    const isExcavation = calc.workType === 'excavacion_pileta' || calc.workType === 'zanja_cimientos';
-    const machineCatalogItem = isExcavation
-      ? catalog.find(c => c.id === 'retro_pala')
-      : catalog.find(c => c.id === 'bobcat_mini');
-
-    const machineHours = isExcavation ? calc.estimatedHoursRetro : calc.estimatedHoursBobcat;
-
-    if (machineCatalogItem && machineHours > 0) {
-      const existingMachineIndex = newItems.findIndex(i => i.id === machineCatalogItem.id);
-      if (existingMachineIndex >= 0) {
-        newItems[existingMachineIndex].quantity = machineHours;
-        newItems[existingMachineIndex].total = machineHours * newItems[existingMachineIndex].unitPrice;
-      } else {
-        newItems.push({
-          id: machineCatalogItem.id,
-          category: 'maquinaria',
-          name: machineCatalogItem.name,
-          description: `Operación y maquinado estimado para ${calc.bankVolumeM3} m³ de suelo`,
-          quantity: machineHours,
-          unit: machineCatalogItem.unit,
-          unitPrice: machineCatalogItem.defaultPrice,
-          total: machineHours * machineCatalogItem.defaultPrice
+          unitPrice: truckPrice,
+          total: calc.truckTrips * truckPrice
         });
       }
     }
@@ -191,7 +188,7 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
         id: 'flete_carreton',
         category: 'transporte',
         name: carretonItem.name,
-        description: 'Logística de ida y vuelta para maquinaria vial',
+        description: 'Traslado seguro de Bobcat a la obra',
         quantity: 1,
         unit: 'flete',
         unitPrice: carretonItem.defaultPrice,
@@ -217,66 +214,64 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
     onSave(budget);
     setIsSaved(true);
     try {
-      confetti({ particleCount: 60, spread: 50, origin: { y: 0.8 } });
+      confetti({ particleCount: 50, spread: 50, origin: { y: 0.8 } });
     } catch {
-      // Ignorar si confetti falla
+      // Ignorar
     }
     setTimeout(() => setIsSaved(false), 2000);
   };
 
-  const handleOpenPreview = () => {
-    onPreview(budget);
-  };
-
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
+      
       {/* SECCIÓN 1: Datos del Cliente y Obra */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
-        <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+      <div className="bg-white border-2 border-slate-900 p-3.5 sm:p-5 shadow-xs">
+        <div className="flex items-center justify-between pb-3 mb-3 border-b-2 border-slate-900">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-700">
-              <User className="w-4 h-4" />
+            <div className="p-1.5 bg-slate-950 text-white shrink-0">
+              <User className="w-4 h-4 text-[#e1261c]" />
             </div>
-            <h3 className="font-bold text-slate-900 text-sm">
-              1. Datos del Cliente y Ubicación de Obra
+            <h3 className="font-black text-slate-950 text-xs sm:text-sm uppercase tracking-tight">
+              1. Datos del Cliente y Obra
             </h3>
           </div>
-          <span className="font-mono text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+          <span className="font-mono text-xs font-black text-slate-900 bg-slate-100 px-2 py-0.5 border border-slate-300">
             Nº {budget.code}
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
               Nombre del Cliente *
             </label>
             <input
               type="text"
               required
-              placeholder="Ej. Juan Pérez / Constructora XYZ"
+              placeholder="Ej. Juan Pérez"
               value={budget.client.name}
               onChange={(e) => setBudget({ ...budget, client: { ...budget.client, name: e.target.value } })}
-              className="w-full px-3 py-2 text-xs font-medium rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs"
+              className="w-full px-3 py-2 text-xs font-bold bg-white border border-slate-300 focus:outline-none focus:border-[#e1261c]"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
               WhatsApp / Teléfono *
             </label>
             <input
               type="text"
-              placeholder="Ej. +54 9 11 2345-6789"
+              inputMode="tel"
+              placeholder="Ej. +54 9 11 1234-5678"
               value={budget.client.phone}
               onChange={(e) => setBudget({ ...budget, client: { ...budget.client, phone: e.target.value } })}
-              className="w-full px-3 py-2 text-xs font-medium rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs"
+              className="w-full px-3 py-2 text-xs font-bold bg-white border border-slate-300 focus:outline-none focus:border-[#e1261c]"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Ubicación / Dirección de la Obra
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+              Dirección de la Obra
             </label>
             <div className="relative">
               <input
@@ -284,25 +279,25 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
                 placeholder="Ej. Barrio Los Álamos, Lote 45"
                 value={budget.project.location}
                 onChange={(e) => setBudget({ ...budget, project: { ...budget.project, location: e.target.value } })}
-                className="w-full pl-8 pr-3 py-2 text-xs font-medium rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs"
+                className="w-full pl-8 pr-3 py-2 text-xs font-bold bg-white border border-slate-300 focus:outline-none focus:border-[#e1261c]"
               />
-              <MapPin className="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" />
+              <MapPin className="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none" />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Título / Descripción del Trabajo
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+              Descripción del Trabajo
             </label>
             <div className="relative">
               <input
                 type="text"
-                placeholder="Ej. Desmonte, nivelación y relleno con tosca"
+                placeholder="Ej. Nivelación y desmonte con Bobcat"
                 value={budget.project.title}
                 onChange={(e) => setBudget({ ...budget, project: { ...budget.project, title: e.target.value } })}
-                className="w-full pl-8 pr-3 py-2 text-xs font-medium rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs"
+                className="w-full pl-8 pr-3 py-2 text-xs font-bold bg-white border border-slate-300 focus:outline-none focus:border-[#e1261c]"
               />
-              <FileText className="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" />
+              <FileText className="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none" />
             </div>
           </div>
         </div>
@@ -314,19 +309,19 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
         onApplyToBudget={handleApplySoilCalc}
       />
 
-      {/* SECCIÓN 3: Desglose de Maquinarias, Materiales y Servicios */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 border-b border-slate-100 gap-2">
+      {/* SECCIÓN 3: Desglose de Maquinarias y Recursos */}
+      <div className="bg-white border-2 border-slate-900 p-3.5 sm:p-5 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-3 border-b-2 border-slate-900 gap-2">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-700">
-              <Shovel className="w-4 h-4" />
+            <div className="p-1.5 bg-slate-950 text-white shrink-0">
+              <Shovel className="w-4 h-4 text-[#e1261c]" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 text-sm">
-                2. Ítems, Maquinarias y Recursos del Presupuesto
+              <h3 className="font-black text-slate-950 text-xs sm:text-sm uppercase tracking-tight">
+                2. Ítems, Máquinas y Materiales
               </h3>
-              <p className="text-xs text-slate-500">
-                Podés usar los botones rápidos o agregar ítems personalizados libremente.
+              <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+                Agregá con 1 toque o escribí tus propios servicios.
               </p>
             </div>
           </div>
@@ -334,213 +329,288 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
           <button
             type="button"
             onClick={handleAddCustomItem}
-            className="self-start sm:self-auto px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-300 hover:bg-slate-50 text-slate-700 flex items-center gap-1.5 transition"
+            className="self-start sm:self-auto px-3 py-1.5 text-xs font-bold bg-slate-950 hover:bg-slate-800 text-white flex items-center gap-1.5 transition cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 text-amber-600" />
+            <Plus className="w-3.5 h-3.5 text-[#e1261c]" />
             <span>+ Agregar Ítem Libre</span>
           </button>
         </div>
 
-        {/* Botones de Agregado Rápido desde Catálogo */}
-        <div className="mb-4 p-3 bg-slate-50/80 rounded-xl border border-slate-200/80">
-          <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 block mb-2 flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-amber-500" />
-            Agregar rápido desde tu catálogo:
+        {/* Botones de Agregado Rápido (Bobcat Destacada) */}
+        <div className="mb-4 p-2.5 sm:p-3 bg-slate-50 border border-slate-300">
+          <span className="text-[10px] font-black uppercase tracking-wider text-slate-600 block mb-2 flex items-center gap-1">
+            <Sparkles className="w-3 h-3 text-[#e1261c]" />
+            Agregar rápido con 1 toque:
           </span>
           <div className="flex flex-wrap gap-1.5">
-            {catalog.map(catItem => (
-              <button
-                key={catItem.id}
-                type="button"
-                onClick={() => handleAddCatalogItem(catItem)}
-                className="px-2.5 py-1 text-xs font-medium rounded-lg bg-white border border-slate-200 hover:border-amber-400 hover:bg-amber-50/40 text-slate-800 transition flex items-center gap-1 shadow-2xs"
-              >
-                <Plus className="w-3 h-3 text-amber-600" />
-                <span>{catItem.name}</span>
-                <span className="text-[10px] text-slate-400 font-mono font-bold">
-                  ({formatCurrency(catItem.defaultPrice, companySettings.currency)}/{catItem.unit})
-                </span>
-              </button>
-            ))}
+            {catalog.map(catItem => {
+              const isBobcat = catItem.id.includes('bobcat') || catItem.name.toLowerCase().includes('bobcat');
+              return (
+                <button
+                  key={catItem.id}
+                  type="button"
+                  onClick={() => handleAddCatalogItem(catItem)}
+                  className={`px-2.5 py-1.5 text-xs font-bold transition flex items-center gap-1 cursor-pointer border ${
+                    isBobcat
+                      ? 'bg-[#e1261c] hover:bg-[#c81e15] text-white border-[#e1261c] shadow-xs'
+                      : 'bg-white hover:bg-slate-100 text-slate-900 border-slate-300'
+                  }`}
+                >
+                  <Plus className={`w-3.5 h-3.5 ${isBobcat ? 'text-white' : 'text-[#e1261c]'}`} />
+                  <span>{catItem.name}</span>
+                  <span className={`text-[10px] font-mono font-bold ${isBobcat ? 'text-red-100' : 'text-slate-500'}`}>
+                    ({formatCurrency(catItem.defaultPrice, companySettings.currency)}/{catItem.unit})
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Tabla de Ítems */}
+        {/* LISTADO DE ÍTEMS: ADAPTADO A CELULAR Y ESCRITORIO */}
         {budget.items.length === 0 ? (
-          <div className="text-center py-10 border border-dashed border-slate-300 rounded-xl bg-slate-50/50">
+          <div className="text-center py-8 border border-dashed border-slate-300 bg-slate-50">
             <Truck className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-            <p className="text-xs font-semibold text-slate-600">No hay ítems en el presupuesto todavía</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">
-              Hacé clic en los botones rápidos de arriba o traslada el cálculo de la calculadora de suelo.
+            <p className="text-xs font-bold text-slate-700">No hay ítems cargados todavía</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              Tocá los botones rojos de arriba para agregar la Bobcat, fletes o camiones.
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-slate-100/80 text-slate-700 font-bold uppercase tracking-wider text-[11px] border-y border-slate-200">
-                  <th className="py-2.5 px-3">Ítem / Tarea</th>
-                  <th className="py-2.5 px-2 w-24 text-center">Cantidad</th>
-                  <th className="py-2.5 px-2 w-24 text-center">Unidad</th>
-                  <th className="py-2.5 px-3 w-36 text-right">Precio Unit. ({companySettings.currency})</th>
-                  <th className="py-2.5 px-3 w-36 text-right">Subtotal</th>
-                  <th className="py-2.5 px-2 w-10 text-center"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {budget.items.map((item, index) => (
-                  <tr key={item.id} className="hover:bg-slate-50/60 transition group">
-                    <td className="py-2 px-3">
-                      <input
-                        type="text"
-                        value={item.name}
-                        onChange={(e) => handleItemChange(index, 'name', e.target.value)}
-                        className="w-full font-bold text-slate-900 px-2 py-1 rounded border border-transparent focus:border-amber-400 focus:bg-white focus:outline-none"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Descripción o detalle adicional (opcional)"
-                        value={item.description || ''}
-                        onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                        className="w-full text-[11px] text-slate-500 px-2 py-0.5 rounded border border-transparent focus:border-amber-300 focus:bg-white focus:outline-none"
-                      />
-                    </td>
+          <div>
+            {/* VISTA PARA CELULAR: Tarjetas individuales táctiles (Se ve en pantallas chicas) */}
+            <div className="block md:hidden space-y-3">
+              {budget.items.map((item, index) => (
+                <div key={item.id} className="p-3 bg-slate-50 border border-slate-300 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <input
+                      type="text"
+                      value={item.name}
+                      onChange={(e) => handleItemChange(index, 'name', e.target.value)}
+                      className="w-full font-bold text-xs text-slate-950 bg-white px-2 py-1.5 border border-slate-300 focus:outline-none focus:border-[#e1261c]"
+                      placeholder="Nombre del trabajo"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveItem(index)}
+                      className="p-1.5 text-slate-400 hover:text-rose-600 bg-white border border-slate-200 shrink-0"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
 
-                    <td className="py-2 px-2 text-center">
+                  <div className="grid grid-cols-12 gap-2 text-xs">
+                    <div className="col-span-4">
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase">Cantidad</label>
                       <input
                         type="number"
+                        inputMode="decimal"
                         step="0.5"
                         min="0"
                         value={item.quantity || ''}
                         onChange={(e) => handleItemChange(index, 'quantity', parseFloat(e.target.value) || 0)}
-                        className="w-20 px-2 py-1 text-center font-bold text-slate-900 rounded border border-slate-200 focus:border-amber-500 focus:outline-none"
+                        className="w-full px-2 py-1.5 text-center font-bold bg-white border border-slate-300"
                       />
-                    </td>
+                    </div>
 
-                    <td className="py-2 px-2 text-center">
+                    <div className="col-span-3">
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase">Unidad</label>
                       <select
                         value={item.unit}
                         onChange={(e) => handleItemChange(index, 'unit', e.target.value)}
-                        className="px-2 py-1 text-xs font-medium text-slate-600 rounded border border-slate-200 bg-white focus:outline-none"
+                        className="w-full px-1 py-1.5 font-bold bg-white border border-slate-300 text-xs"
                       >
                         <option value="hs">hs</option>
                         <option value="días">días</option>
                         <option value="viajes">viajes</option>
                         <option value="m³">m³</option>
-                        <option value="m²">m²</option>
                         <option value="flete">flete</option>
                         <option value="global">global</option>
-                        <option value="un">un</option>
                       </select>
-                    </td>
+                    </div>
 
-                    <td className="py-2 px-3 text-right">
+                    <div className="col-span-5">
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase">Precio Unit.</label>
                       <input
                         type="number"
+                        inputMode="decimal"
                         min="0"
                         value={item.unitPrice || ''}
                         onChange={(e) => handleItemChange(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                        className="w-28 px-2 py-1 text-right font-bold text-slate-800 rounded border border-slate-200 focus:border-amber-500 focus:outline-none"
+                        className="w-full px-2 py-1.5 text-right font-mono font-bold bg-white border border-slate-300"
                       />
-                    </td>
+                    </div>
+                  </div>
 
-                    <td className="py-2 px-3 text-right font-black text-slate-900 text-sm">
+                  <div className="flex justify-between items-center pt-1 border-t border-slate-200 text-xs">
+                    <span className="text-[11px] font-bold text-slate-500">Subtotal ítem:</span>
+                    <span className="font-mono font-black text-slate-950 text-sm">
                       {formatCurrency(item.total, companySettings.currency)}
-                    </td>
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
 
-                    <td className="py-2 px-2 text-center">
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveItem(index)}
-                        className="p-1 text-slate-300 hover:text-rose-600 rounded transition opacity-60 group-hover:opacity-100"
-                        title="Eliminar ítem"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
+            {/* VISTA PARA ESCRITORIO / PANTALLA GRANDE: Tabla convencional */}
+            <div className="hidden md:block overflow-x-auto border border-slate-300">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-900 text-white font-bold uppercase tracking-wider text-[11px]">
+                    <th className="py-2.5 px-3">Ítem / Tarea</th>
+                    <th className="py-2.5 px-2 w-24 text-center">Cantidad</th>
+                    <th className="py-2.5 px-2 w-24 text-center">Unidad</th>
+                    <th className="py-2.5 px-3 w-36 text-right">Precio Unit.</th>
+                    <th className="py-2.5 px-3 w-36 text-right">Subtotal</th>
+                    <th className="py-2.5 px-2 w-10 text-center"></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {budget.items.map((item, index) => (
+                    <tr key={item.id} className="hover:bg-slate-50 transition">
+                      <td className="py-2 px-3">
+                        <input
+                          type="text"
+                          value={item.name}
+                          onChange={(e) => handleItemChange(index, 'name', e.target.value)}
+                          className="w-full font-bold text-slate-950 px-2 py-1 border border-transparent focus:border-slate-400 focus:bg-white"
+                        />
+                      </td>
+
+                      <td className="py-2 px-2 text-center">
+                        <input
+                          type="number"
+                          step="0.5"
+                          min="0"
+                          value={item.quantity || ''}
+                          onChange={(e) => handleItemChange(index, 'quantity', parseFloat(e.target.value) || 0)}
+                          className="w-20 px-2 py-1 text-center font-bold text-slate-900 border border-slate-300"
+                        />
+                      </td>
+
+                      <td className="py-2 px-2 text-center">
+                        <select
+                          value={item.unit}
+                          onChange={(e) => handleItemChange(index, 'unit', e.target.value)}
+                          className="px-2 py-1 text-xs font-bold text-slate-700 border border-slate-300 bg-white"
+                        >
+                          <option value="hs">hs</option>
+                          <option value="días">días</option>
+                          <option value="viajes">viajes</option>
+                          <option value="m³">m³</option>
+                          <option value="m²">m²</option>
+                          <option value="flete">flete</option>
+                          <option value="global">global</option>
+                        </select>
+                      </td>
+
+                      <td className="py-2 px-3 text-right">
+                        <input
+                          type="number"
+                          min="0"
+                          value={item.unitPrice || ''}
+                          onChange={(e) => handleItemChange(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                          className="w-28 px-2 py-1 text-right font-mono font-bold text-slate-800 border border-slate-300"
+                        />
+                      </td>
+
+                      <td className="py-2 px-3 text-right font-mono font-black text-slate-950 text-sm">
+                        {formatCurrency(item.total, companySettings.currency)}
+                      </td>
+
+                      <td className="py-2 px-2 text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveItem(index)}
+                          className="p-1 text-slate-400 hover:text-rose-600 cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
 
-      {/* SECCIÓN 4: Totales, Margen Comercial y Condiciones */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Condiciones de Pago y Validez */}
-        <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
-          <h3 className="font-bold text-slate-900 text-sm pb-2 border-b border-slate-100">
+      {/* SECCIÓN 4: Totales, Margen Comercial y Cierre */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+        
+        {/* Condiciones de Pago */}
+        <div className="lg:col-span-6 bg-white border-2 border-slate-900 p-3.5 sm:p-5 shadow-xs space-y-3">
+          <h3 className="font-black text-slate-950 text-xs sm:text-sm uppercase tracking-tight pb-2 border-b-2 border-slate-900">
             3. Condiciones Comerciales
           </h3>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Forma de Pago y Condiciones
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+              Forma de Pago
             </label>
             <textarea
-              rows={3}
+              rows={2}
               value={budget.paymentTerms}
               onChange={(e) => setBudget({ ...budget, paymentTerms: e.target.value })}
-              placeholder="Ej. 50% de anticipo al ingresar los equipos a la obra, saldo contra finalización de los trabajos."
-              className="w-full px-3 py-2 text-xs font-medium rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs"
+              placeholder="Ej. 50% de anticipo al inicio, saldo al finalizar."
+              className="w-full px-3 py-2 text-xs font-medium bg-white border border-slate-300 focus:outline-none focus:border-[#e1261c]"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Validez de la Oferta (días)
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                Validez (días)
               </label>
               <input
                 type="number"
                 min="1"
                 value={budget.validityDays}
                 onChange={(e) => setBudget({ ...budget, validityDays: parseInt(e.target.value, 10) || 15 })}
-                className="w-full px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-1.5 text-xs font-bold border border-slate-300"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Observaciones Generales
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                Observaciones
               </label>
               <input
                 type="text"
-                placeholder="Ej. No incluye retiro de tocones mayores a 50cm"
+                placeholder="Ej. Sujeto a buen clima"
                 value={budget.generalNotes || ''}
                 onChange={(e) => setBudget({ ...budget, generalNotes: e.target.value })}
-                className="w-full px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-1.5 text-xs font-medium border border-slate-300"
               />
             </div>
           </div>
         </div>
 
-        {/* Panel Financiero y Totales */}
-        <div className="lg:col-span-6 bg-white rounded-2xl border border-amber-300 p-5 shadow-sm space-y-3.5">
-          <h3 className="font-bold text-slate-900 text-sm pb-2 border-b border-slate-100 flex items-center justify-between">
+        {/* Panel Financiero y Totales con Paleta Bobcat */}
+        <div className="lg:col-span-6 bg-white border-2 border-slate-900 p-3.5 sm:p-5 shadow-sm space-y-3">
+          <h3 className="font-black text-slate-950 text-xs sm:text-sm uppercase tracking-tight pb-2 border-b-2 border-slate-900 flex justify-between items-center">
             <span>4. Resumen Económico</span>
-            <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-              Cálculo Automático
+            <span className="text-[10px] font-black uppercase tracking-wider bg-slate-950 text-white px-2 py-0.5">
+              Total
             </span>
           </h3>
 
-          {/* Subtotal Directo */}
           <div className="flex justify-between items-center text-xs">
-            <span className="font-semibold text-slate-600">Subtotal de Costos Directos:</span>
-            <span className="font-extrabold text-slate-900 text-sm">
+            <span className="font-bold text-slate-600">Subtotal de Costos:</span>
+            <span className="font-mono font-bold text-slate-900 text-sm">
               {formatCurrency(budget.subtotalItems, companySettings.currency)}
             </span>
           </div>
 
           {/* Margen de Ganancia */}
-          <div className="p-3 bg-amber-50/60 rounded-xl border border-amber-200/80">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-bold text-amber-900 flex items-center gap-1">
-                <Percent className="w-3.5 h-3.5 text-amber-600" />
-                Margen de Ganancia / Imprevistos (%):
+          <div className="p-2.5 bg-slate-50 border border-slate-300">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1">
+                <Percent className="w-3.5 h-3.5 text-[#e1261c]" />
+                Margen Ganancia (%):
               </span>
-              <span className="text-xs font-mono font-bold text-amber-950">
+              <span className="text-xs font-mono font-bold text-[#e1261c]">
                 +{formatCurrency(budget.marginAmount, companySettings.currency)}
               </span>
             </div>
@@ -553,9 +623,9 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
                 step="5"
                 value={budget.marginPercent}
                 onChange={(e) => handleMarginChange(parseFloat(e.target.value) || 0)}
-                className="w-full accent-amber-500 cursor-pointer"
+                className="w-full accent-[#e1261c] cursor-pointer"
               />
-              <span className="text-xs font-extrabold bg-white px-2 py-0.5 rounded border border-amber-300 min-w-12 text-center text-amber-900">
+              <span className="text-xs font-black bg-white px-2 py-0.5 border border-slate-300 min-w-12 text-center text-slate-900">
                 {budget.marginPercent}%
               </span>
             </div>
@@ -566,10 +636,10 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
                   key={val}
                   type="button"
                   onClick={() => handleMarginChange(val)}
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded border transition ${
+                  className={`text-[10px] font-bold px-2 py-0.5 border transition cursor-pointer ${
                     budget.marginPercent === val
-                      ? 'bg-amber-500 text-white border-amber-500'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                      ? 'bg-slate-950 text-white border-slate-950'
+                      : 'bg-white text-slate-700 border-slate-300'
                   }`}
                 >
                   {val}%
@@ -578,90 +648,45 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
             </div>
           </div>
 
-          {/* Opciones de IVA y Descuento */}
-          <div className="grid grid-cols-2 gap-3 text-xs pt-1">
-            <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50">
-              <input
-                type="checkbox"
-                checked={budget.includeTax}
-                onChange={(e) => {
-                  const recalculated = recalculateBudget(
-                    budget.items,
-                    budget.marginPercent,
-                    e.target.checked,
-                    budget.taxPercent,
-                    budget.discountPercent
-                  );
-                  setBudget(prev => ({ ...prev, ...recalculated }));
-                }}
-                className="rounded text-amber-500 focus:ring-amber-400"
-              />
-              <span className="font-semibold text-slate-700">Incluir IVA (+{budget.taxPercent}%)</span>
-            </label>
-
-            <div className="flex items-center gap-1.5 p-2 rounded-lg border border-slate-200">
-              <span className="text-slate-600 font-semibold text-[11px]">Descuento %:</span>
-              <input
-                type="number"
-                min="0"
-                max="50"
-                value={budget.discountPercent || ''}
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value) || 0;
-                  const recalculated = recalculateBudget(
-                    budget.items,
-                    budget.marginPercent,
-                    budget.includeTax,
-                    budget.taxPercent,
-                    val
-                  );
-                  setBudget(prev => ({ ...prev, ...recalculated }));
-                }}
-                className="w-14 px-1.5 py-0.5 text-right font-bold rounded border border-slate-200"
-                placeholder="0"
-              />
-            </div>
-          </div>
-
-          {/* Total Final Destacado */}
-          <div className="p-4 rounded-xl bg-slate-900 text-white flex items-center justify-between shadow-md">
+          {/* TOTAL FINAL DESTACADO (ESTILO BOBCAT) */}
+          <div className="p-3.5 bg-slate-950 text-white flex items-center justify-between border-b-4 border-[#e1261c]">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-amber-400 block">
-                Total Presupuestado
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#e1261c] block">
+                Total a Presupuestar
               </span>
               <span className="text-[11px] text-slate-400">
-                {budget.items.length} ítems cargados
+                {budget.items.length} ítems
               </span>
             </div>
             <div className="text-right">
-              <span className="text-2xl font-black text-amber-400 font-mono tracking-tight">
+              <span className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight">
                 {formatCurrency(budget.total, companySettings.currency)}
               </span>
             </div>
           </div>
 
-          {/* Botones de Acción */}
-          <div className="flex items-center gap-3 pt-2">
+          {/* BOTONES DE ACCIÓN: GRANDES Y FÁCILES DE TOCAR CON EL PULGAR EN CELULAR */}
+          <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
             <button
               type="button"
               onClick={handleSaveBudget}
-              className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs ${
+              className={`py-3 px-4 font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer border ${
                 isSaved
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
+                  ? 'bg-emerald-600 text-white border-emerald-600'
+                  : 'bg-white hover:bg-slate-100 text-slate-900 border-slate-400'
               }`}
             >
-              {isSaved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4 text-slate-600" />}
-              <span>{isSaved ? '¡Guardado con éxito!' : 'Guardar Presupuesto'}</span>
+              {isSaved ? <Check className="w-4 h-4 stroke-[3]" /> : <Save className="w-4 h-4" />}
+              <span>{isSaved ? '¡Guardado!' : 'Guardar'}</span>
             </button>
 
             <button
               type="button"
-              onClick={handleOpenPreview}
-              className="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white transition flex items-center justify-center gap-2 shadow-sm shadow-amber-500/25 active:scale-98"
+              onClick={() => onPreview(budget)}
+              className="py-3 px-4 font-black text-xs uppercase tracking-wider bg-[#e1261c] hover:bg-[#c81e15] active:scale-98 text-white transition flex items-center justify-center gap-2 cursor-pointer border border-[#e1261c] shadow-xs"
             >
-              <Eye className="w-4 h-4" />
-              <span>Ver Formal (PDF / WhatsApp)</span>
+              <Eye className="w-4 h-4 stroke-[3]" />
+              <span>Ver Presupuesto (PDF / WhatsApp)</span>
             </button>
           </div>
         </div>

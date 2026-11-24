@@ -34,15 +34,7 @@ export const SOIL_TYPES: SoilTypeInfo[] = [
 ];
 
 export const DEFAULT_CATALOG: PriceCatalogItem[] = [
-  // MAQUINARIA
-  {
-    id: 'retro_pala',
-    category: 'maquinaria',
-    name: 'Retroexcavadora / Pala Mixta (por hora)',
-    unit: 'hs',
-    defaultPrice: 55000,
-    description: 'Ideal para zanjeos profundos, excavaciones de piscinas y cargado masivo.'
-  },
+  // MAQUINARIA (BOBCAT COMO PRINCIPAL)
   {
     id: 'bobcat_mini',
     category: 'maquinaria',
@@ -50,6 +42,14 @@ export const DEFAULT_CATALOG: PriceCatalogItem[] = [
     unit: 'hs',
     defaultPrice: 38000,
     description: 'Nivelación ágil, espacios reducidos, desparrame de tierra y tosca.'
+  },
+  {
+    id: 'retro_pala',
+    category: 'maquinaria',
+    name: 'Retroexcavadora / Pala Mixta (por hora)',
+    unit: 'hs',
+    defaultPrice: 55000,
+    description: 'Ideal para zanjeos profundos, excavaciones de piscinas y cargado masivo.'
   },
   {
     id: 'pala_frontal',
