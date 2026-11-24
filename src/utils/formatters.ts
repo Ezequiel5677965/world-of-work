@@ -1,9 +1,9 @@
 import { Budget } from '../types/budget';
 
 export function formatCurrency(amount: number, currency: string = '$'): string {
-  if (isNaN(amount)) return `${currency} 0`;
+  if (isNaN(amount)) return `${currency} 0,00`;
   const formatted = new Intl.NumberFormat('es-AR', {
-    minimumFractionDigits: 0,
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
   return `${currency} ${formatted}`;
@@ -22,34 +22,50 @@ export function formatDate(dateString: string): string {
   }
 }
 
+export function calculateExpiryDate(dateString: string, validityDays: number): string {
+  try {
+    const date = new Date(dateString);
+    date.setDate(date.getDate() + (validityDays || 15));
+    return date.toLocaleDateString('es-AR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  } catch {
+    return '15 días posteriores';
+  }
+}
+
 export function generateWhatsAppMessage(budget: Budget, companyName: string): string {
   const lineItemsText = budget.items
-    .map(item => `  • ${item.name} (${item.quantity} ${item.unit}): ${formatCurrency(item.total)}`)
+    .map((item, idx) => `  ${idx + 1}. ${item.name} (${item.quantity} ${item.unit}) -> ${formatCurrency(item.total)}`)
     .join('\n');
 
   let soilSummary = '';
   if (budget.soilCalculation && budget.soilCalculation.bankVolumeM3 > 0) {
     const sc = budget.soilCalculation;
-    soilSummary = `\n🚜 *Estimación de Suelo:*
-  • Volumen excavado/base: ${sc.bankVolumeM3} m³
-  • Volumen esponjado: ${sc.looseVolumeM3} m³
-  • Viajes de camión est.: ${sc.truckTrips} viajes (${sc.truckCapacityM3} m³/viaje)\n`;
+    soilSummary = `\n📐 *MEMORIA TÉCNICA:*
+  • Área de intervención: ${sc.areaM2} m²
+  • Volumen en banco: ${sc.bankVolumeM3} m³
+  • Volumen esponjado (+${sc.customSwellPercent}%): ${sc.looseVolumeM3} m³
+  • Logística estimada: ${sc.truckTrips} viajes de camión (${sc.truckCapacityM3} m³/viaje)\n`;
   }
 
-  const message = `*PRESUPUESTO - ${companyName}*
-📄 *Nº:* ${budget.code}
-📅 *Fecha:* ${formatDate(budget.createdAt)}
-👤 *Cliente:* ${budget.client.name}
-📍 *Obra:* ${budget.project.location || budget.project.title || 'Según lo conversado'}
+  const message = `*COTIZACIÓN COMERCIAL - ${companyName}*
+📄 *Presupuesto Nº:* ${budget.code}
+📅 *Fecha de Emisión:* ${formatDate(budget.createdAt)}
+⏳ *Validez:* ${budget.validityDays} días corridos (hasta ${calculateExpiryDate(budget.createdAt, budget.validityDays)})
+
+👤 *Comitente / Cliente:* ${budget.client.name}
+📍 *Emplazamiento de Obra:* ${budget.project.location || budget.project.title || 'Según lo conversado'}
 ${soilSummary}
-📋 *Detalle de Trabajos y Recursos:*
+📋 *Planilla de Trabajos y Equipamiento:*
 ${lineItemsText}
 
-💰 *TOTAL: ${formatCurrency(budget.total)}*
-⏳ *Validez:* ${budget.validityDays} días.
-📌 *Condiciones:* ${budget.paymentTerms || 'A convenir.'}
+💵 *TOTAL GENERAL: ${formatCurrency(budget.total)}*
+📌 *Condiciones:* ${budget.paymentTerms || '50% anticipo al inicio, saldo contra finalización.'}
 
-_Quedamos a tu entera disposición por cualquier consulta para coordinar el inicio._`;
+_Propuesta formal sujeta a confirmación técnica de equipos y transitabilidad climática._`;
 
   return encodeURIComponent(message);
 }
