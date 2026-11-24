@@ -238,7 +238,7 @@ export const App: React.FC = () => {
         companySettings={companySettings}
       />
 
-      <main className="flex-1 pb-16">
+      <main className="flex-1 pb-16 no-print">
         {currentView === 'editor' ? (
           <BudgetForm
             key={activeBudget.id}

@@ -9,7 +9,17 @@
 @media print {
   @page {
     margin: 1.2cm 1cm;
-    size: auto;
+    size: A4 portrait;
+  }
+
+  /* Ocultar absolutamente toda la página web de fondo (formulario, calculadora, botones) */
+  header,
+  main,
+  nav,
+  footer,
+  aside,
+  .no-print {
+    display: none !important;
   }
 
   body {
@@ -17,17 +27,13 @@
     color: #0f172a !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  .no-print {
-    display: none !important;
-  }
-
-  .print-only {
-    display: block !important;
-  }
-
+  /* La hoja de presupuesto es lo ÚNICO que se imprime */
   .print-container {
+    display: block !important;
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
