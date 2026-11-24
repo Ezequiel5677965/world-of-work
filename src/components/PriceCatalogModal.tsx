@@ -1,0 +1,428 @@
+import React, { useState } from 'react';
+import { X, Save, RotateCcw, Building2, DollarSign, Plus, Trash2, Check } from 'lucide-react';
+import { CompanySettings, PriceCatalogItem, ItemCategory } from '../types/budget';
+import { DEFAULT_CATALOG, DEFAULT_COMPANY_SETTINGS } from '../data/defaultCatalog';
+
+interface PriceCatalogModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  settings: CompanySettings;
+  catalog: PriceCatalogItem[];
+  onSave: (newSettings: CompanySettings, newCatalog: PriceCatalogItem[]) => void;
+}
+
+export const PriceCatalogModal: React.FC<PriceCatalogModalProps> = ({
+  isOpen,
+  onClose,
+  settings,
+  catalog,
+  onSave,
+}) => {
+  const [activeTab, setActiveTab] = useState<'empresa' | 'tarifas'>('tarifas');
+  const [formSettings, setFormSettings] = useState<CompanySettings>(settings);
+  const [formCatalog, setFormCatalog] = useState<PriceCatalogItem[]>(catalog);
+  const [savedSuccess, setSavedSuccess] = useState(false);
+
+  // Nuevo item temporal
+  const [newItemName, setNewItemName] = useState('');
+  const [newItemCategory, setNewItemCategory] = useState<ItemCategory>('maquinaria');
+  const [newItemUnit, setNewItemUnit] = useState<PriceCatalogItem['unit']>('hs');
+  const [newItemPrice, setNewItemPrice] = useState<number>(0);
+
+  if (!isOpen) return null;
+
+  const handlePriceChange = (id: string, newPrice: number) => {
+    setFormCatalog(prev =>
+      prev.map(item => (item.id === id ? { ...item, defaultPrice: Math.max(0, newPrice) } : item))
+    );
+  };
+
+  const handleRemoveCatalogItem = (id: string) => {
+    setFormCatalog(prev => prev.filter(item => item.id !== id));
+  };
+
+  const handleAddCatalogItem = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newItemName.trim()) return;
+
+    const newItem: PriceCatalogItem = {
+      id: `custom_${Date.now()}`,
+      category: newItemCategory,
+      name: newItemName.trim(),
+      unit: newItemUnit,
+      defaultPrice: Math.max(0, newItemPrice),
+      description: 'Ítem personalizado de la empresa.'
+    };
+
+    setFormCatalog(prev => [...prev, newItem]);
+    setNewItemName('');
+    setNewItemPrice(0);
+  };
+
+  const handleResetDefaults = () => {
+    if (confirm('¿Deseas restaurar los precios y valores sugeridos por defecto?')) {
+      setFormCatalog(DEFAULT_CATALOG);
+      setFormSettings(DEFAULT_COMPANY_SETTINGS);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(formSettings, formCatalog);
+    setSavedSuccess(true);
+    setTimeout(() => {
+      setSavedSuccess(false);
+      onClose();
+    }, 1200);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 no-print">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+        {/* Cabecera */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/70">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-xs">
+              <Building2 className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-slate-900">
+                Configuración y Lista de Precios
+              </h2>
+              <p className="text-xs text-slate-500">
+                Personalizá los datos de tu empresa y las tarifas de tus máquinas y servicios
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-lg transition"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b border-slate-200 px-6 bg-white gap-6">
+          <button
+            onClick={() => setActiveTab('tarifas')}
+            className={`py-3 text-xs font-bold border-b-2 flex items-center gap-2 transition ${
+              activeTab === 'tarifas'
+                ? 'border-amber-500 text-amber-900'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <DollarSign className="w-4 h-4" />
+            <span>Lista de Precios Base ({formCatalog.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('empresa')}
+            className={`py-3 text-xs font-bold border-b-2 flex items-center gap-2 transition ${
+              activeTab === 'empresa'
+                ? 'border-amber-500 text-amber-900'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <Building2 className="w-4 h-4" />
+            <span>Datos de la Empresa / Membrete</span>
+          </button>
+        </div>
+
+        {/* Contenido scrolleable */}
+        <div className="p-6 overflow-y-auto flex-1">
+          {activeTab === 'tarifas' && (
+            <div className="space-y-6">
+              {/* Categorías */}
+              {(['maquinaria', 'transporte', 'material', 'mano_de_obra'] as ItemCategory[]).map(cat => {
+                const itemsInCat = formCatalog.filter(i => i.category === cat);
+                if (itemsInCat.length === 0) return null;
+
+                const catTitles: Record<ItemCategory, string> = {
+                  maquinaria: '🚜 Maquinaria Pesada y Compactación',
+                  transporte: '🚚 Camiones, Volquetes y Fletes en Carretón',
+                  material: '⛰️ Áridos, Tosca y Rellenos de Suelo',
+                  mano_de_obra: '👷 Mano de Obra y Servicios Especializados',
+                  personalizado: 'Otros'
+                };
+
+                return (
+                  <div key={cat} className="space-y-2">
+                    <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
+                      {catTitles[cat]}
+                    </h3>
+                    <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-slate-50/50 overflow-hidden">
+                      {itemsInCat.map(item => (
+                        <div key={item.id} className="p-3 flex items-center justify-between gap-3 bg-white hover:bg-slate-50/80 transition">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-semibold text-slate-900 truncate">
+                              {item.name}
+                            </p>
+                            <p className="text-[11px] text-slate-500 truncate">
+                              {item.description}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                              / {item.unit}
+                            </span>
+                            <div className="relative w-32">
+                              <span className="absolute left-2.5 top-1.5 text-xs font-bold text-slate-400">
+                                $
+                              </span>
+                              <input
+                                type="number"
+                                value={item.defaultPrice || ''}
+                                onChange={(e) => handlePriceChange(item.id, parseFloat(e.target.value) || 0)}
+                                className="w-full pl-6 pr-2 py-1 text-xs font-bold text-right rounded-md border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveCatalogItem(item.id)}
+                              className="text-slate-300 hover:text-rose-500 p-1 rounded transition"
+                              title="Quitar"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Formulario para agregar nuevo ítem a la lista */}
+              <div className="p-4 rounded-xl border border-dashed border-amber-300 bg-amber-50/30">
+                <h4 className="text-xs font-bold text-slate-800 mb-2 flex items-center gap-1.5">
+                  <Plus className="w-4 h-4 text-amber-600" />
+                  <span>Agregar nuevo servicio o material al tarifario</span>
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                  <div className="sm:col-span-5">
+                    <input
+                      type="text"
+                      placeholder="Nombre del servicio / máquina"
+                      value={newItemName}
+                      onChange={(e) => setNewItemName(e.target.value)}
+                      className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white"
+                    />
+                  </div>
+                  <div className="sm:col-span-3">
+                    <select
+                      value={newItemCategory}
+                      onChange={(e) => setNewItemCategory(e.target.value as ItemCategory)}
+                      className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white"
+                    >
+                      <option value="maquinaria">Maquinaria</option>
+                      <option value="transporte">Transporte/Flete</option>
+                      <option value="material">Material/Árido</option>
+                      <option value="mano_de_obra">Mano de Obra</option>
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <select
+                      value={newItemUnit}
+                      onChange={(e) => setNewItemUnit(e.target.value as PriceCatalogItem['unit'])}
+                      className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white"
+                    >
+                      <option value="hs">hs (horas)</option>
+                      <option value="días">días</option>
+                      <option value="m³">m³</option>
+                      <option value="viajes">viajes</option>
+                      <option value="flete">flete</option>
+                      <option value="global">global</option>
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2 flex gap-1">
+                    <input
+                      type="number"
+                      placeholder="Precio $"
+                      value={newItemPrice || ''}
+                      onChange={(e) => setNewItemPrice(parseFloat(e.target.value) || 0)}
+                      className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-200 bg-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddCatalogItem}
+                      className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold transition shrink-0"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'empresa' && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Nombre de la Empresa o Emprendimiento
+                  </label>
+                  <input
+                    type="text"
+                    value={formSettings.companyName}
+                    onChange={(e) => setFormSettings({ ...formSettings, companyName: e.target.value })}
+                    className="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500"
+                    placeholder="Ej. Maquinita Movimiento de Suelo"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Titular / Responsable
+                  </label>
+                  <input
+                    type="text"
+                    value={formSettings.ownerName}
+                    onChange={(e) => setFormSettings({ ...formSettings, ownerName: e.target.value })}
+                    className="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500"
+                    placeholder="Ej. Ezequiel"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Teléfono / WhatsApp de Contacto
+                  </label>
+                  <input
+                    type="text"
+                    value={formSettings.phone}
+                    onChange={(e) => setFormSettings({ ...formSettings, phone: e.target.value })}
+                    className="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500"
+                    placeholder="Ej. +54 9 11 1234-5678"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={formSettings.email}
+                    onChange={(e) => setFormSettings({ ...formSettings, email: e.target.value })}
+                    className="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500"
+                    placeholder="contacto@maquinita.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Dirección / Base Operativa
+                  </label>
+                  <input
+                    type="text"
+                    value={formSettings.address}
+                    onChange={(e) => setFormSettings({ ...formSettings, address: e.target.value })}
+                    className="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500"
+                    placeholder="Localidad, Zona, Ruta"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    CUIT / Identificación Fiscal
+                  </label>
+                  <input
+                    type="text"
+                    value={formSettings.cuit}
+                    onChange={(e) => setFormSettings({ ...formSettings, cuit: e.target.value })}
+                    className="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500"
+                    placeholder="20-XXXXXXXX-X"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Datos Bancarios para Cobranzas (Alias / CBU)
+                </label>
+                <input
+                  type="text"
+                  value={formSettings.bankInfo}
+                  onChange={(e) => setFormSettings({ ...formSettings, bankInfo: e.target.value })}
+                  className="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500"
+                  placeholder="Alias: maquinita.suelo / Banco Galicia"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Margen de Ganancia predeterminado (%)
+                  </label>
+                  <input
+                    type="number"
+                    value={formSettings.defaultMargin}
+                    onChange={(e) => setFormSettings({ ...formSettings, defaultMargin: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Validez de Presupuesto predeterminada (Días)
+                  </label>
+                  <input
+                    type="number"
+                    value={formSettings.defaultValidityDays}
+                    onChange={(e) => setFormSettings({ ...formSettings, defaultValidityDays: parseInt(e.target.value, 10) || 15 })}
+                    className="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={handleResetDefaults}
+            className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Restaurar valores sugeridos</span>
+          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-200 transition"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className={`px-5 py-2 text-xs font-bold rounded-lg text-white transition flex items-center gap-1.5 shadow-sm ${
+                savedSuccess ? 'bg-emerald-600' : 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/25'
+              }`}
+            >
+              {savedSuccess ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>¡Guardado!</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>Guardar Cambios</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
