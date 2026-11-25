@@ -75,7 +75,7 @@ export const PriceCatalogModal: React.FC<PriceCatalogModalProps> = ({
     }
   };
 
-  const handleChangePassword = (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setPassError(null);
     setPassSuccess(null);
@@ -85,7 +85,7 @@ export const PriceCatalogModal: React.FC<PriceCatalogModalProps> = ({
       return;
     }
 
-    const res = changeUserPassword(targetUser, currentPassword, newPassword);
+    const res = await changeUserPassword(targetUser, currentPassword, newPassword);
     if (res.success) {
       setPassSuccess(`¡Contraseña para "${targetUser}" actualizada con éxito!`);
       setCurrentPassword('');
