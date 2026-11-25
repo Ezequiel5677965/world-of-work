@@ -20,6 +20,7 @@ import {
 } from './utils/storage';
 import { calculateSoilVolume } from './utils/soilCalculations';
 import { syncAllBudgets } from './utils/supabaseSync';
+import { supabase } from './utils/supabaseClient';
 
 export const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => getCurrentSession());
@@ -31,6 +32,39 @@ export const App: React.FC = () => {
   const [previewBudget, setPreviewBudget] = useState<Budget | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
+
+  // Escuchar inicio de sesión de Google (OAuth) a través de Supabase
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const u: AuthUser = {
+          username: session.user.email?.split('@')[0] || 'usuario',
+          name: session.user.user_metadata?.full_name || session.user.email || 'Usuario Google',
+          email: session.user.email || '',
+          role: 'admin'
+        };
+        setCurrentUser(u);
+        localStorage.setItem('wow_auth_session_v1', JSON.stringify(u));
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const u: AuthUser = {
+          username: session.user.email?.split('@')[0] || 'usuario',
+          name: session.user.user_metadata?.full_name || session.user.email || 'Usuario Google',
+          email: session.user.email || '',
+          role: 'admin'
+        };
+        setCurrentUser(u);
+        localStorage.setItem('wow_auth_session_v1', JSON.stringify(u));
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   // Sincronización automática con Supabase al iniciar sesión
   useEffect(() => {
@@ -271,6 +305,7 @@ export const App: React.FC = () => {
         companySettings={companySettings}
         currentUser={currentUser}
         onLogout={() => {
+          supabase.auth.signOut().catch(() => {});
           logoutUser();
           setCurrentUser(null);
         }}
