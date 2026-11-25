@@ -88,7 +88,7 @@ export const BudgetHistory: React.FC<BudgetHistoryProps> = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4">
+    <div className="max-w-xl mx-auto w-full px-3 sm:px-4 py-3 sm:py-5 space-y-3.5">
       {/* Barra de Búsqueda y Filtros */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b-2 border-slate-900 pb-3">
         <div>

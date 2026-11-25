@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { 
-  Printer, 
-  Share2, 
-  Copy, 
-  X, 
-  Edit3, 
-  Check, 
+import {
+  Printer,
+  Share2,
+  Copy,
+  X,
+  Edit3,
+  Check,
   Phone,
   Layers,
   FileText,
@@ -62,22 +62,21 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-xs flex items-start justify-center p-2 sm:p-6 print:p-0 print:bg-white print:static print:z-auto">
-      <div className="bg-white shadow-2xl max-w-3xl w-full border border-slate-300 flex flex-col my-1 sm:my-6 print:my-0 print:border-none print:shadow-none print:max-w-full">
-        
+      <div className="bg-white shadow-2xl max-w-2xl w-full border border-slate-300 flex flex-col my-1 sm:my-6 print:my-0 print:border-none print:shadow-none print:max-w-full">
+
         {/* Barra superior de herramientas (Sticky y adaptable a móvil) */}
         <div className="sticky top-0 z-30 flex flex-wrap items-center justify-between px-3 sm:px-6 py-2.5 sm:py-3 bg-slate-950 text-white gap-2 border-b-2 border-[#e1261c] shadow-md no-print">
-          
+
           {/* Selector de modo: Resumido vs Detallado */}
           <div className="flex items-center gap-1.5">
             <div className="inline-flex border border-slate-800 bg-slate-900 p-0.5">
               <button
                 type="button"
                 onClick={() => setMode('resumido')}
-                className={`px-2.5 py-1 text-xs font-black transition cursor-pointer flex items-center gap-1 ${
-                  mode === 'resumido'
+                className={`px-2.5 py-1 text-xs font-black transition cursor-pointer flex items-center gap-1 ${mode === 'resumido'
                     ? 'bg-[#e1261c] text-white'
                     : 'text-slate-400 hover:text-white'
-                }`}
+                  }`}
               >
                 <AlignLeft className="w-3.5 h-3.5" />
                 <span>Resumido</span>
@@ -85,11 +84,10 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
               <button
                 type="button"
                 onClick={() => setMode('completo')}
-                className={`px-2.5 py-1 text-xs font-black transition cursor-pointer flex items-center gap-1 ${
-                  mode === 'completo'
+                className={`px-2.5 py-1 text-xs font-black transition cursor-pointer flex items-center gap-1 ${mode === 'completo'
                     ? 'bg-[#e1261c] text-white'
                     : 'text-slate-400 hover:text-white'
-                }`}
+                  }`}
               >
                 <FileText className="w-3.5 h-3.5" />
                 <span>Detallado</span>
@@ -145,7 +143,7 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
         {/* DOCUMENTO RESUMIDO Y DIRECTO (ADAPTADO A MÓVIL Y A4 IMPRESO) */}
         {/* ============================================================== */}
         <div className="p-4 sm:p-8 md:p-12 bg-white print:p-0 text-slate-900 font-sans print-container">
-          
+
           {/* CABECERA: Empresa vs Datos de Presupuesto */}
           <div className="flex flex-col sm:flex-row justify-between items-start pb-4 border-b-2 border-slate-900 gap-3">
             <div>
@@ -228,15 +226,15 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
             </div>
           )}
 
-          {/* TABLA PRINCIPAL DE TRABAJOS Y PRECIOS (SCROLLABLE EN PANTALLAS MUY CHICAS) */}
-          <div className="border border-slate-400 mb-4 overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse min-w-[320px]">
+          {/* TABLA PRINCIPAL DE TRABAJOS Y PRECIOS */}
+          <div className="border border-slate-400 mb-4 overflow-hidden">
+            <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-900 text-white font-bold uppercase tracking-wider text-[10px] sm:text-[11px] border-b border-slate-800">
-                  <th className="py-2 px-2.5 sm:px-3">Descripción de Trabajos / Equipos</th>
-                  <th className="py-2 px-2 sm:px-3 text-center w-20 sm:w-24">Cantidad</th>
-                  <th className="py-2 px-2 sm:px-3 text-right w-24 sm:w-32">Precio Unit.</th>
-                  <th className="py-2 px-2 sm:px-3 text-right w-28 sm:w-36">Total</th>
+                  <th className="py-2 px-2 sm:px-3">Descripción</th>
+                  <th className="py-2 px-1 sm:px-2 text-center w-14 sm:w-20">Cant.</th>
+                  <th className="py-2 px-1.5 sm:px-3 text-right w-20 sm:w-28">P. Unit.</th>
+                  <th className="py-2 px-2 sm:px-3 text-right w-22 sm:w-32">Total</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -265,7 +263,7 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
 
           {/* CIERRE: CONDICIONES DE PAGO Y TOTAL FINAL */}
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-start break-inside-avoid">
-            
+
             {/* Condiciones simples y banco */}
             <div className="sm:col-span-7 border border-slate-300 p-3 text-xs space-y-2">
               <div>
