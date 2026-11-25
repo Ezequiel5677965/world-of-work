@@ -148,15 +148,15 @@ export const DEFAULT_CATALOG: PriceCatalogItem[] = [
 ];
 
 export const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
-  companyName: 'World of Work',
-  ownerName: 'Ezequiel',
-  phone: '11 5555-5555',
-  email: 'contacto@worldofwork.com',
-  address: 'Ruta / Base Operativa',
-  city: 'Buenos Aires',
-  cuit: '20-XXXXXXXX-X',
-  bankInfo: 'Alias: worldofwork.suelo / CBU: 00000031000...',
+  companyName: '',
+  ownerName: '',
+  phone: '',
+  email: '',
+  address: '',
+  city: '',
+  cuit: '',
+  bankInfo: '',
   currency: '$',
-  defaultMargin: 20, // 20% margen ganancia
+  defaultMargin: 20,
   defaultValidityDays: 15
 };

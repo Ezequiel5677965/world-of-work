@@ -315,7 +315,7 @@ export const PriceCatalogModal: React.FC<PriceCatalogModalProps> = ({
                     value={formSettings.companyName}
                     onChange={(e) => setFormSettings({ ...formSettings, companyName: e.target.value })}
                     className="w-full px-3 py-2 text-xs font-bold border border-slate-300"
-                    placeholder="Ej. Maquinita Movimiento de Suelo"
+                    placeholder="Nombre de la Empresa"
                   />
                 </div>
 
@@ -328,7 +328,7 @@ export const PriceCatalogModal: React.FC<PriceCatalogModalProps> = ({
                     value={formSettings.ownerName}
                     onChange={(e) => setFormSettings({ ...formSettings, ownerName: e.target.value })}
                     className="w-full px-3 py-2 text-xs font-bold border border-slate-300"
-                    placeholder="Ej. Ezequiel"
+                    placeholder="Nombre del Titular"
                   />
                 </div>
 
@@ -342,7 +342,7 @@ export const PriceCatalogModal: React.FC<PriceCatalogModalProps> = ({
                     value={formSettings.phone}
                     onChange={(e) => setFormSettings({ ...formSettings, phone: e.target.value })}
                     className="w-full px-3 py-2 text-xs font-bold border border-slate-300"
-                    placeholder="+54 9 11 1234-5678"
+                    placeholder="Teléfono / WhatsApp"
                   />
                 </div>
 
@@ -355,7 +355,7 @@ export const PriceCatalogModal: React.FC<PriceCatalogModalProps> = ({
                     value={formSettings.city}
                     onChange={(e) => setFormSettings({ ...formSettings, city: e.target.value })}
                     className="w-full px-3 py-2 text-xs font-bold border border-slate-300"
-                    placeholder="Buenos Aires"
+                    placeholder="Ciudad / Localidad"
                   />
                 </div>
               </div>
@@ -369,7 +369,7 @@ export const PriceCatalogModal: React.FC<PriceCatalogModalProps> = ({
                   value={formSettings.bankInfo}
                   onChange={(e) => setFormSettings({ ...formSettings, bankInfo: e.target.value })}
                   className="w-full px-3 py-2 text-xs font-mono font-bold border border-slate-300"
-                  placeholder="Alias: worldofwork.suelo / CBU: ..."
+                  placeholder="Alias / CBU"
                 />
               </div>
 

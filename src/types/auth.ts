@@ -1,4 +1,5 @@
 export interface AuthUser {
+  id?: string;
   username: string;
   name: string;
   email: string;
@@ -7,6 +8,7 @@ export interface AuthUser {
 }
 
 export interface StoredUser {
+  id?: string;
   username: string;
   password?: string;
   passwordHash?: string;

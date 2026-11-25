@@ -91,6 +91,7 @@ export type BudgetStatus = 'borrador' | 'enviado' | 'aprobado' | 'rechazado';
 
 export interface Budget {
   id: string;
+  userId?: string; // ID o correo del usuario propietario (aislamiento estricto)
   code: string; // ej: "MS-2026-001"
   createdAt: string;
   client: ClientData;

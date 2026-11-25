@@ -396,7 +396,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
                   required
                   value={regName}
                   onChange={(e) => setRegName(e.target.value)}
-                  placeholder="Ej. Juan Pérez"
+                  placeholder="Tu nombre completo"
                   className="w-full pl-9 pr-3 py-1.5 text-xs font-bold bg-slate-50 border border-slate-300 focus:bg-white focus:outline-none focus:border-[#e1261c] transition"
                 />
               </div>
@@ -417,7 +417,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
                   autoCapitalize="none"
                   value={regEmail}
                   onChange={(e) => setRegEmail(e.target.value)}
-                  placeholder="juan@empresa.com"
+                  placeholder="correo@ejemplo.com"
                   className="w-full pl-9 pr-3 py-1.5 text-xs font-bold bg-slate-50 border border-slate-300 focus:bg-white focus:outline-none focus:border-[#e1261c] transition"
                 />
               </div>

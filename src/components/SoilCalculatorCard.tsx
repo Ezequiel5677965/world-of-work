@@ -24,11 +24,11 @@ export const SoilCalculatorCard: React.FC<SoilCalculatorCardProps> = ({
 }) => {
   const [workType, setWorkType] = useState<WorkType>(initialData?.workType || 'desmonte_nivelacion');
   const [shape, setShape] = useState<'rectangular' | 'direct_m2' | 'circular'>(initialData?.shape || 'rectangular');
-  const [length, setLength] = useState<number>(initialData?.length || 20);
-  const [width, setWidth] = useState<number>(initialData?.width || 10);
-  const [depth, setDepth] = useState<number>(initialData?.depth || 0.30);
-  const [diameter, setDiameter] = useState<number>(initialData?.diameter || 4);
-  const [directArea, setDirectArea] = useState<number>(initialData?.directArea || 200);
+  const [length, setLength] = useState<number>(initialData?.length || 0);
+  const [width, setWidth] = useState<number>(initialData?.width || 0);
+  const [depth, setDepth] = useState<number>(initialData?.depth || 0);
+  const [diameter, setDiameter] = useState<number>(initialData?.diameter || 0);
+  const [directArea, setDirectArea] = useState<number>(initialData?.directArea || 0);
   const [soilType, setSoilType] = useState<SoilType>(initialData?.soilType || 'tierra_negra');
   const [customSwell, setCustomSwell] = useState<number | undefined>(initialData?.customSwellPercent);
   const [truckCap, setTruckCap] = useState<number>(initialData?.truckCapacityM3 || 8);
@@ -57,11 +57,11 @@ export const SoilCalculatorCard: React.FC<SoilCalculatorCardProps> = ({
   };
 
   const handleReset = () => {
-    setLength(15);
-    setWidth(8);
-    setDepth(0.30);
-    setDiameter(4);
-    setDirectArea(120);
+    setLength(0);
+    setWidth(0);
+    setDepth(0);
+    setDiameter(0);
+    setDirectArea(0);
     setSoilType('tierra_negra');
     setCustomSwell(undefined);
   };
@@ -164,7 +164,7 @@ export const SoilCalculatorCard: React.FC<SoilCalculatorCardProps> = ({
                     value={length || ''}
                     onChange={(e) => setLength(parseFloat(e.target.value) || 0)}
                     className="w-full pl-2 pr-6 py-1.5 text-xs font-bold bg-white border border-slate-300 focus:outline-none focus:border-[#e1261c]"
-                    placeholder="20"
+                    placeholder="0"
                   />
                   <span className="absolute right-2 top-1.5 text-[11px] font-bold text-slate-400 pointer-events-none">m</span>
                 </div>
@@ -181,7 +181,7 @@ export const SoilCalculatorCard: React.FC<SoilCalculatorCardProps> = ({
                     value={width || ''}
                     onChange={(e) => setWidth(parseFloat(e.target.value) || 0)}
                     className="w-full pl-2 pr-6 py-1.5 text-xs font-bold bg-white border border-slate-300 focus:outline-none focus:border-[#e1261c]"
-                    placeholder="10"
+                    placeholder="0"
                   />
                   <span className="absolute right-2 top-1.5 text-[11px] font-bold text-slate-400 pointer-events-none">m</span>
                 </div>
@@ -201,7 +201,7 @@ export const SoilCalculatorCard: React.FC<SoilCalculatorCardProps> = ({
                   value={directArea || ''}
                   onChange={(e) => setDirectArea(parseFloat(e.target.value) || 0)}
                   className="w-full pl-2 pr-7 py-1.5 text-xs font-bold bg-white border border-slate-300 focus:outline-none focus:border-[#e1261c]"
-                  placeholder="200"
+                  placeholder="0"
                 />
                 <span className="absolute right-2 top-1.5 text-[11px] font-bold text-slate-400 pointer-events-none">m²</span>
               </div>
@@ -220,7 +220,7 @@ export const SoilCalculatorCard: React.FC<SoilCalculatorCardProps> = ({
                   value={diameter || ''}
                   onChange={(e) => setDiameter(parseFloat(e.target.value) || 0)}
                   className="w-full pl-2 pr-6 py-1.5 text-xs font-bold bg-white border border-slate-300 focus:outline-none focus:border-[#e1261c]"
-                  placeholder="4"
+                  placeholder="0"
                 />
                 <span className="absolute right-2 top-1.5 text-[11px] font-bold text-slate-400 pointer-events-none">m</span>
               </div>
@@ -240,7 +240,7 @@ export const SoilCalculatorCard: React.FC<SoilCalculatorCardProps> = ({
                   value={depth || ''}
                   onChange={(e) => setDepth(parseFloat(e.target.value) || 0)}
                   className="w-full pl-2 pr-6 py-1.5 text-xs font-bold bg-white border border-slate-300 focus:outline-none focus:border-[#e1261c]"
-                  placeholder="0.30"
+                  placeholder="0"
                 />
                 <span className="absolute right-2 top-1.5 text-[11px] font-bold text-slate-400 pointer-events-none">m</span>
               </div>

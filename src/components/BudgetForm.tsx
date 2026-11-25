@@ -115,7 +115,7 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
     const newItem: BudgetItem = {
       id: `item_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       category: 'personalizado',
-      name: 'Nuevo servicio / trabajo de obra',
+      name: '',
       description: '',
       quantity: 1,
       unit: 'hs',
@@ -255,7 +255,7 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
               <input
                 type="text"
                 required
-                placeholder="Ej. Juan Pérez"
+                placeholder="Nombre del Cliente"
                 value={budget.client.name}
                 onChange={(e) => setBudget({ ...budget, client: { ...budget.client, name: e.target.value } })}
                 className="w-full px-2.5 py-1.5 text-xs font-bold bg-white border border-slate-300 focus:outline-none focus:border-[#e1261c]"
@@ -269,7 +269,7 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
               <input
                 type="text"
                 inputMode="tel"
-                placeholder="Ej. +54 9 11 1234-5678"
+                placeholder="Teléfono / WhatsApp"
                 value={budget.client.phone}
                 onChange={(e) => setBudget({ ...budget, client: { ...budget.client, phone: e.target.value } })}
                 className="w-full px-2.5 py-1.5 text-xs font-bold bg-white border border-slate-300 focus:outline-none focus:border-[#e1261c]"
@@ -285,7 +285,7 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Ej. Barrio Los Álamos, Lote 45"
+                  placeholder="Dirección o Lote de Obra"
                   value={budget.project.location}
                   onChange={(e) => setBudget({ ...budget, project: { ...budget.project, location: e.target.value } })}
                   className="w-full pl-7 pr-2.5 py-1.5 text-xs font-bold bg-white border border-slate-300 focus:outline-none focus:border-[#e1261c]"
@@ -301,7 +301,7 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Ej. Desmonte y nivelación con minicargadora"
+                  placeholder="Descripción del Trabajo"
                   value={budget.project.title}
                   onChange={(e) => setBudget({ ...budget, project: { ...budget.project, title: e.target.value } })}
                   className="w-full pl-7 pr-2.5 py-1.5 text-xs font-bold bg-white border border-slate-300 focus:outline-none focus:border-[#e1261c]"
@@ -495,7 +495,7 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
               type="text"
               value={budget.paymentTerms}
               onChange={(e) => setBudget({ ...budget, paymentTerms: e.target.value })}
-              placeholder="Ej. 50% de anticipo al inicio, saldo al finalizar."
+              placeholder="Condiciones y forma de pago"
               className="w-full px-2.5 py-1.5 text-xs font-bold bg-white border border-slate-300 focus:outline-none focus:border-[#e1261c]"
             />
           </div>

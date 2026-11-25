@@ -1,10 +1,12 @@
 import { supabase } from './supabaseClient';
-import { Budget, CompanySettings, PriceCatalogItem } from '../types/budget';
-import { getSavedBudgets, saveBudget } from './storage';
+import { Budget } from '../types/budget';
+import { getSavedBudgets, getActiveUserKey, getUserIdentifier } from './storage';
 
-function budgetToRow(b: Budget) {
+function budgetToRow(b: Budget, userId?: string) {
+  const finalUserId = b.userId || userId || getUserIdentifier();
   return {
     id: b.id,
+    user_id: finalUserId,
     code: b.code,
     created_at: b.createdAt,
     client: b.client,
@@ -32,6 +34,7 @@ function budgetToRow(b: Budget) {
 function rowToBudget(r: any): Budget {
   return {
     id: r.id,
+    userId: r.user_id,
     code: r.code,
     createdAt: r.created_at,
     client: r.client || { name: '', phone: '', location: '' },
@@ -55,10 +58,10 @@ function rowToBudget(r: any): Budget {
   };
 }
 
-// Subir o actualizar presupuesto en la nube
-export async function syncBudgetToRemote(budget: Budget): Promise<boolean> {
+// Subir o actualizar presupuesto en la nube (con user_id obligatorio)
+export async function syncBudgetToRemote(budget: Budget, userId?: string): Promise<boolean> {
   try {
-    const row = budgetToRow(budget);
+    const row = budgetToRow(budget, userId);
     const { error } = await supabase
       .from('budgets')
       .upsert(row, { onConflict: 'id' });
@@ -74,14 +77,16 @@ export async function syncBudgetToRemote(budget: Budget): Promise<boolean> {
   }
 }
 
-// Eliminar presupuesto en la nube
-export async function deleteBudgetFromRemote(budgetId: string): Promise<boolean> {
+// Eliminar presupuesto en la nube (respetando aislamiento de usuario)
+export async function deleteBudgetFromRemote(budgetId: string, userId?: string): Promise<boolean> {
   try {
-    const { error } = await supabase
-      .from('budgets')
-      .delete()
-      .eq('id', budgetId);
+    const targetUserId = userId || getUserIdentifier();
+    let query = supabase.from('budgets').delete().eq('id', budgetId);
+    if (targetUserId && targetUserId !== 'general') {
+      query = query.eq('user_id', targetUserId);
+    }
 
+    const { error } = await query;
     if (error) {
       console.warn('Error eliminando en Supabase:', error.message);
       return false;
@@ -93,12 +98,19 @@ export async function deleteBudgetFromRemote(budgetId: string): Promise<boolean>
   }
 }
 
-// Descargar todos los presupuestos de la nube y fusionar con los locales
-export async function fetchRemoteBudgets(): Promise<Budget[] | null> {
+// Descargar ÚNICAMENTE los presupuestos pertenecientes al usuario actual
+export async function fetchRemoteBudgets(userId?: string): Promise<Budget[] | null> {
   try {
+    const targetUserId = userId || getUserIdentifier();
+    if (!targetUserId || targetUserId === 'guest') {
+      return [];
+    }
+
+    // Aislamiento estricto: solo consultar los registros del usuario actual
     const { data, error } = await supabase
       .from('budgets')
       .select('*')
+      .eq('user_id', targetUserId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -114,54 +126,50 @@ export async function fetchRemoteBudgets(): Promise<Budget[] | null> {
   }
 }
 
-// Sincronización completa bidireccional (Offline-First)
-export async function syncAllBudgets(): Promise<{ success: boolean; count: number }> {
+// Sincronización completa bidireccional aislada por usuario (Offline-First)
+export async function syncAllBudgets(userId?: string): Promise<{ success: boolean; count: number }> {
   try {
-    const localBudgets = getSavedBudgets();
-    const remoteBudgets = await fetchRemoteBudgets();
+    const targetUserId = userId || getUserIdentifier();
+    if (!targetUserId || targetUserId === 'guest') {
+      return { success: true, count: 0 };
+    }
+
+    const localBudgets = getSavedBudgets(targetUserId);
+    const remoteBudgets = await fetchRemoteBudgets(targetUserId);
 
     if (remoteBudgets === null) {
       return { success: false, count: localBudgets.length };
     }
 
-    // Mapa por ID
+    // Mapa por ID exclusivo de este usuario
     const mergedMap = new Map<string, Budget>();
 
-    // 1. Agregar locales
+    // 1. Agregar locales del usuario
     localBudgets.forEach(b => mergedMap.set(b.id, b));
 
-    // 2. Fusionar remotos
+    // 2. Fusionar remotos del usuario
     remoteBudgets.forEach(remote => {
       mergedMap.set(remote.id, remote);
     });
 
-    // 3. Subir los locales que no estaban en la nube
+    // 3. Subir los locales del usuario que no estaban en la nube
     for (const local of localBudgets) {
       const existsInRemote = remoteBudgets.some(r => r.id === local.id);
       if (!existsInRemote) {
-        await syncBudgetToRemote(local);
+        await syncBudgetToRemote(local, targetUserId);
       }
     }
 
     const mergedList = Array.from(mergedMap.values());
     mergedList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-    // Guardar en localStorage
-    localStorage.setItem('maquinita_budgets_v1', JSON.stringify(mergedList));
+    // Guardar en el almacenamiento local exclusivo de este usuario
+    const userKey = getActiveUserKey(targetUserId);
+    localStorage.setItem(`wow_budgets_${userKey}`, JSON.stringify(mergedList));
 
     return { success: true, count: mergedList.length };
-  } catch (e) {
-    console.error('Error en sincronización general:', e);
+  } catch (err) {
+    console.warn('Error en sincronización aislada:', err);
     return { success: false, count: 0 };
-  }
-}
-
-// Comprobar estado de conexión con Supabase
-export async function checkSupabaseConnection(): Promise<boolean> {
-  try {
-    const { error } = await supabase.from('budgets').select('id').limit(1);
-    return !error;
-  } catch {
-    return false;
   }
 }

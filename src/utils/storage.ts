@@ -1,60 +1,94 @@
 import { Budget, CompanySettings, PriceCatalogItem } from '../types/budget';
 import { DEFAULT_CATALOG, DEFAULT_COMPANY_SETTINGS } from '../data/defaultCatalog';
 import { syncBudgetToRemote, deleteBudgetFromRemote } from './supabaseSync';
+import { getCurrentSession } from './auth';
 
-const STORAGE_KEYS = {
-  BUDGETS: 'maquinita_budgets_v1',
-  SETTINGS: 'maquinita_settings_v1',
-  CATALOG: 'maquinita_catalog_v1',
-  CURRENT_DRAFT: 'maquinita_current_draft_v1',
-};
+export function getActiveUserKey(userId?: string): string {
+  if (userId && userId.trim()) {
+    return userId.toLowerCase().trim().replace(/[^a-z0-9_-]/g, '_');
+  }
+  const session = getCurrentSession();
+  if (session) {
+    const id = session.id || session.email || session.username;
+    if (id && id.trim()) {
+      return id.toLowerCase().trim().replace(/[^a-z0-9_-]/g, '_');
+    }
+  }
+  return 'guest';
+}
 
-// --- Presupuestos ---
-export function getSavedBudgets(): Budget[] {
+export function getUserIdentifier(userId?: string): string {
+  if (userId && userId.trim()) {
+    return userId.trim().toLowerCase();
+  }
+  const session = getCurrentSession();
+  if (session) {
+    return (session.email || session.username || session.id || 'general').trim().toLowerCase();
+  }
+  return 'general';
+}
+
+// --- Presupuestos Aislados por Usuario ---
+export function getSavedBudgets(userId?: string): Budget[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.BUDGETS);
+    const userKey = getActiveUserKey(userId);
+    const storageKey = `wow_budgets_${userKey}`;
+    const raw = localStorage.getItem(storageKey);
     if (!raw) return [];
-    return JSON.parse(raw);
+    const list: Budget[] = JSON.parse(raw);
+    return Array.isArray(list) ? list : [];
   } catch (e) {
     console.error('Error cargando presupuestos de localStorage', e);
     return [];
   }
 }
 
-export function saveBudget(budget: Budget): void {
+export function saveBudget(budget: Budget, userId?: string): void {
   try {
-    const list = getSavedBudgets();
+    const userIdentifier = getUserIdentifier(userId);
+    const userKey = getActiveUserKey(userId);
+    const storageKey = `wow_budgets_${userKey}`;
+
+    // Asegurar que el presupuesto lleve el identificador del usuario propietario
+    budget.userId = budget.userId || userIdentifier;
+
+    const list = getSavedBudgets(userKey);
     const index = list.findIndex(b => b.id === budget.id);
     if (index >= 0) {
       list[index] = budget;
     } else {
       list.unshift(budget); // nuevo al principio
     }
-    localStorage.setItem(STORAGE_KEYS.BUDGETS, JSON.stringify(list));
+    localStorage.setItem(storageKey, JSON.stringify(list));
 
-    // Sincronización transparente con Supabase en segundo plano
-    syncBudgetToRemote(budget).catch(() => {});
+    // Sincronización transparente con Supabase para este usuario
+    syncBudgetToRemote(budget, userIdentifier).catch(() => {});
   } catch (e) {
     console.error('Error guardando presupuesto', e);
   }
 }
 
-export function deleteBudget(id: string): void {
+export function deleteBudget(id: string, userId?: string): void {
   try {
-    const list = getSavedBudgets().filter(b => b.id !== id);
-    localStorage.setItem(STORAGE_KEYS.BUDGETS, JSON.stringify(list));
+    const userIdentifier = getUserIdentifier(userId);
+    const userKey = getActiveUserKey(userId);
+    const storageKey = `wow_budgets_${userKey}`;
 
-    // Eliminar en Supabase en segundo plano
-    deleteBudgetFromRemote(id).catch(() => {});
+    const list = getSavedBudgets(userKey).filter(b => b.id !== id);
+    localStorage.setItem(storageKey, JSON.stringify(list));
+
+    // Eliminar en Supabase en segundo plano con aislamiento
+    deleteBudgetFromRemote(id, userIdentifier).catch(() => {});
   } catch (e) {
     console.error('Error eliminando presupuesto', e);
   }
 }
 
-// --- Configuración de Empresa ---
-export function getCompanySettings(): CompanySettings {
+// --- Configuración de Empresa Aislada por Usuario ---
+export function getCompanySettings(userId?: string): CompanySettings {
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+    const userKey = getActiveUserKey(userId);
+    const raw = localStorage.getItem(`wow_settings_${userKey}`);
     if (!raw) return DEFAULT_COMPANY_SETTINGS;
     return { ...DEFAULT_COMPANY_SETTINGS, ...JSON.parse(raw) };
   } catch (e) {
@@ -62,18 +96,20 @@ export function getCompanySettings(): CompanySettings {
   }
 }
 
-export function saveCompanySettings(settings: CompanySettings): void {
+export function saveCompanySettings(settings: CompanySettings, userId?: string): void {
   try {
-    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+    const userKey = getActiveUserKey(userId);
+    localStorage.setItem(`wow_settings_${userKey}`, JSON.stringify(settings));
   } catch (e) {
     console.error('Error guardando configuración', e);
   }
 }
 
-// --- Catálogo de Precios ---
-export function getPriceCatalog(): PriceCatalogItem[] {
+// --- Catálogo de Precios Aislado por Usuario ---
+export function getPriceCatalog(userId?: string): PriceCatalogItem[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.CATALOG);
+    const userKey = getActiveUserKey(userId);
+    const raw = localStorage.getItem(`wow_catalog_${userKey}`);
     if (!raw) return DEFAULT_CATALOG;
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_CATALOG;
@@ -82,9 +118,10 @@ export function getPriceCatalog(): PriceCatalogItem[] {
   }
 }
 
-export function savePriceCatalog(catalog: PriceCatalogItem[]): void {
+export function savePriceCatalog(catalog: PriceCatalogItem[], userId?: string): void {
   try {
-    localStorage.setItem(STORAGE_KEYS.CATALOG, JSON.stringify(catalog));
+    const userKey = getActiveUserKey(userId);
+    localStorage.setItem(`wow_catalog_${userKey}`, JSON.stringify(catalog));
   } catch (e) {
     console.error('Error guardando catálogo', e);
   }

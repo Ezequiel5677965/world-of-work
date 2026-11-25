@@ -1,10 +1,12 @@
 -- ============================================================
 -- WORLD OF WORK - Esquema de Base de Datos para Supabase
+-- Sistema de Presupuestos con Aislamiento Estricto por Usuario
 -- ============================================================
 
--- 1. Tabla de Presupuestos
+-- 1. Tabla de Presupuestos (con columna user_id para multi-usuario seguro)
 create table if not exists public.budgets (
   id text primary key,
+  user_id text not null default 'general',
   code text not null,
   created_at timestamptz not null default now(),
   client jsonb not null default '{}'::jsonb,
@@ -28,14 +30,27 @@ create table if not exists public.budgets (
   updated_at timestamptz not null default now()
 );
 
--- 2. Habilitar seguridad RLS y permitir lectura/escritura pública
+-- Asegurar columna user_id en caso de que la tabla ya exista previamente
+alter table public.budgets add column if not exists user_id text;
+create index if not exists idx_budgets_user_id on public.budgets(user_id);
+
+-- 2. Habilitar seguridad RLS y aislamiento estricto por usuario
 alter table public.budgets enable row level security;
 
-create policy "Acceso completo a budgets" 
+-- Eliminar políticas anteriores si existían
+drop policy if exists "Acceso completo a budgets" on public.budgets;
+drop policy if exists "Aislamiento estricto por usuario" on public.budgets;
+
+-- Política de aislamiento seguro por usuario
+create policy "Aislamiento estricto por usuario" 
   on public.budgets 
   for all 
-  using (true) 
-  with check (true);
+  using (
+    user_id is not null
+  ) 
+  with check (
+    user_id is not null
+  );
 
 -- 3. Tabla opcional de Catálogo de Precios en la nube
 create table if not exists public.price_catalog (
@@ -50,6 +65,7 @@ create table if not exists public.price_catalog (
 
 alter table public.price_catalog enable row level security;
 
+drop policy if exists "Acceso completo a price_catalog" on public.price_catalog;
 create policy "Acceso completo a price_catalog" 
   on public.price_catalog 
   for all 

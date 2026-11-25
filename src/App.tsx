@@ -16,19 +16,22 @@ import {
   getSavedBudgets, 
   saveBudget, 
   deleteBudget, 
-  generateNextBudgetCode 
+  generateNextBudgetCode,
+  getUserIdentifier 
 } from './utils/storage';
-import { calculateSoilVolume } from './utils/soilCalculations';
 import { syncAllBudgets } from './utils/supabaseSync';
 import { supabase } from './utils/supabaseClient';
 
 export const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => getCurrentSession());
   const [currentView, setCurrentView] = useState<'editor' | 'history'>('editor');
-  const [companySettings, setCompanySettings] = useState<CompanySettings>(getCompanySettings());
-  const [catalog, setCatalog] = useState<PriceCatalogItem[]>(getPriceCatalog());
-  const [savedBudgets, setSavedBudgets] = useState<Budget[]>(getSavedBudgets());
-  const [activeBudget, setActiveBudget] = useState<Budget>(() => createInitialBudget(savedBudgets, companySettings));
+  
+  const currentUserId = currentUser ? (currentUser.id || currentUser.email || currentUser.username) : undefined;
+  
+  const [companySettings, setCompanySettings] = useState<CompanySettings>(() => getCompanySettings(currentUserId));
+  const [catalog, setCatalog] = useState<PriceCatalogItem[]>(() => getPriceCatalog(currentUserId));
+  const [savedBudgets, setSavedBudgets] = useState<Budget[]>(() => getSavedBudgets(currentUserId));
+  const [activeBudget, setActiveBudget] = useState<Budget>(() => createInitialBudget([], getCompanySettings(currentUserId), currentUserId));
   const [previewBudget, setPreviewBudget] = useState<Budget | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
@@ -38,6 +41,7 @@ export const App: React.FC = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         const u: AuthUser = {
+          id: session.user.id,
           username: session.user.email?.split('@')[0] || 'usuario',
           name: session.user.user_metadata?.full_name || session.user.email || 'Usuario Google',
           email: session.user.email || '',
@@ -51,6 +55,7 @@ export const App: React.FC = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         const u: AuthUser = {
+          id: session.user.id,
           username: session.user.email?.split('@')[0] || 'usuario',
           name: session.user.user_metadata?.full_name || session.user.email || 'Usuario Google',
           email: session.user.email || '',
@@ -66,145 +71,59 @@ export const App: React.FC = () => {
     };
   }, []);
 
-  // Sincronización automática con Supabase al iniciar sesión
+  // Recargar datos aislados y sincronizar cuando cambia el usuario activo
   useEffect(() => {
     if (currentUser) {
-      syncAllBudgets().then(res => {
+      const uid = currentUser.id || currentUser.email || currentUser.username;
+      const userBudgets = getSavedBudgets(uid);
+      const userSettings = getCompanySettings(uid);
+      const userCatalog = getPriceCatalog(uid);
+
+      setSavedBudgets(userBudgets);
+      setCompanySettings(userSettings);
+      setCatalog(userCatalog);
+      setActiveBudget(createInitialBudget(userBudgets, userSettings, uid));
+
+      // Sincronizar en la nube ÚNICAMENTE los datos de este usuario
+      syncAllBudgets(uid).then(res => {
         if (res.success) {
-          setSavedBudgets(getSavedBudgets());
+          setSavedBudgets(getSavedBudgets(uid));
         }
       });
     }
   }, [currentUser]);
 
   const handleManualSync = async () => {
+    if (!currentUser) return;
+    const uid = currentUser.id || currentUser.email || currentUser.username;
     setIsSyncing(true);
     try {
-      const res = await syncAllBudgets();
+      const res = await syncAllBudgets(uid);
       if (res.success) {
-        setSavedBudgets(getSavedBudgets());
+        setSavedBudgets(getSavedBudgets(uid));
       }
     } finally {
       setTimeout(() => setIsSyncing(false), 500);
     }
   };
 
-  // Inicializar presupuesto de ejemplo si no hay ninguno
-  useEffect(() => {
-    if (savedBudgets.length === 0) {
-      const sampleSoilCalc = calculateSoilVolume({
-        workType: 'desmonte_nivelacion',
-        shape: 'rectangular',
-        length: 25,
-        width: 12,
-        depth: 0.35,
-        soilType: 'tierra_negra',
-        truckCapacityM3: 8
-      });
-
-      const sampleBudget: Budget = {
-        id: `sample_${Date.now()}`,
-        code: generateNextBudgetCode([]),
-        createdAt: new Date().toISOString(),
-        client: {
-          name: 'Constructora del Valle / Arq. Martín Gómez',
-          phone: '+54 9 11 4455-8899',
-          email: 'mgomez@obras.com',
-          location: 'Barrio Náutico El Faro, Lote 114'
-        },
-        project: {
-          title: 'Desmonte, Nivelación y Aporte de Tosca Compactada',
-          location: 'El Faro Lote 114, Tigre',
-          type: 'desmonte_nivelacion',
-          startDate: new Date(Date.now() + 86400000 * 3).toISOString()
-        },
-        soilCalculation: sampleSoilCalc,
-        items: [
-          {
-            id: 'retro_pala',
-            category: 'maquinaria',
-            name: 'Retroexcavadora / Pala Mixta (por hora)',
-            description: 'Apertura, desmonte de capa vegetal y carga a camión',
-            quantity: 6,
-            unit: 'hs',
-            unitPrice: 55000,
-            total: 330000
-          },
-          {
-            id: 'mini_cargadora',
-            category: 'maquinaria',
-            name: 'Minicargadora frontal (por hora)',
-            description: 'Desparrame y perfilado fino de suelo',
-            quantity: 8,
-            unit: 'hs',
-            unitPrice: 38000,
-            total: 304000
-          },
-          {
-            id: 'flete_carreton',
-            category: 'transporte',
-            name: 'Flete Carretón (Traslado de maquinaria ida y vuelta)',
-            description: 'Traslado seguro de retro y minicargadora a obra',
-            quantity: 1,
-            unit: 'flete',
-            unitPrice: 120000,
-            total: 120000
-          },
-          {
-            id: 'camion_retiro_8m3',
-            category: 'transporte',
-            name: 'Retiro de suelo con Camión Volcador (8 m³)',
-            description: '17 viajes estimados de tierra negra esponjada',
-            quantity: 17,
-            unit: 'viajes',
-            unitPrice: 65000,
-            total: 1105000
-          },
-          {
-            id: 'tosca_relleno',
-            category: 'material',
-            name: 'Tosca de primera para relleno (por m³ puesto en obra)',
-            description: 'Aporte de tosca limpia para base de platea',
-            quantity: 40,
-            unit: 'm³',
-            unitPrice: 16500,
-            total: 660000
-          }
-        ],
-        subtotalItems: 2519000,
-        marginPercent: 20,
-        marginAmount: 503800,
-        subtotalWithMargin: 3022800,
-        includeTax: false,
-        taxPercent: 21,
-        taxAmount: 0,
-        discountPercent: 0,
-        discountAmount: 0,
-        total: 3022800,
-        paymentTerms: '50% de anticipo para reserva de equipos y flete, 50% al finalizar las tareas.',
-        validityDays: 15,
-        status: 'aprobado',
-        generalNotes: 'Sujeto a condiciones climáticas favorables para el ingreso de bateas.'
-      };
-
-      saveBudget(sampleBudget);
-      setSavedBudgets([sampleBudget]);
-      setActiveBudget(sampleBudget);
-    }
-  }, []);
-
-  function createInitialBudget(existingList: Budget[], settings: CompanySettings): Budget {
+  // Creación de presupuesto completamente limpio (sin datos de relleno por defecto)
+  function createInitialBudget(existingList: Budget[], settings: CompanySettings, uid?: string): Budget {
+    const ownerId = uid || (currentUser ? (currentUser.id || currentUser.email || currentUser.username) : undefined);
     return {
       id: `budget_${Date.now()}`,
+      userId: ownerId,
       code: generateNextBudgetCode(existingList),
       createdAt: new Date().toISOString(),
       client: {
         name: '',
         phone: '',
-        location: ''
+        email: '',
+        location: '',
+        notes: ''
       },
       project: {
-        title: 'Movimiento de Suelo y Nivelación',
+        title: '',
         location: '',
         type: 'desmonte_nivelacion'
       },
@@ -219,21 +138,24 @@ export const App: React.FC = () => {
       discountPercent: 0,
       discountAmount: 0,
       total: 0,
-      paymentTerms: '50% de anticipo al inicio de los trabajos, saldo al finalizar.',
+      paymentTerms: '',
       validityDays: settings.defaultValidityDays || 15,
-      status: 'borrador'
+      status: 'borrador',
+      generalNotes: ''
     };
   }
 
   const handleNewBudget = () => {
-    const fresh = createInitialBudget(savedBudgets, companySettings);
+    const uid = currentUser ? (currentUser.id || currentUser.email || currentUser.username) : undefined;
+    const fresh = createInitialBudget(savedBudgets, companySettings, uid);
     setActiveBudget(fresh);
     setCurrentView('editor');
   };
 
   const handleSaveBudget = (budgetToSave: Budget) => {
-    saveBudget(budgetToSave);
-    const updatedList = getSavedBudgets();
+    const uid = currentUser ? (currentUser.id || currentUser.email || currentUser.username) : undefined;
+    saveBudget(budgetToSave, uid);
+    const updatedList = getSavedBudgets(uid);
     setSavedBudgets(updatedList);
     setActiveBudget(budgetToSave);
   };
@@ -249,34 +171,39 @@ export const App: React.FC = () => {
   };
 
   const handleDuplicateBudget = (budget: Budget) => {
+    const uid = currentUser ? (currentUser.id || currentUser.email || currentUser.username) : undefined;
     const duplicated: Budget = {
       ...budget,
       id: `budget_${Date.now()}`,
+      userId: uid,
       code: generateNextBudgetCode(savedBudgets),
       createdAt: new Date().toISOString(),
       status: 'borrador'
     };
-    saveBudget(duplicated);
-    setSavedBudgets(getSavedBudgets());
+    saveBudget(duplicated, uid);
+    const updated = getSavedBudgets(uid);
+    setSavedBudgets(updated);
     setActiveBudget(duplicated);
     setCurrentView('editor');
   };
 
   const handleDeleteBudget = (id: string) => {
-    deleteBudget(id);
-    const updated = getSavedBudgets();
+    const uid = currentUser ? (currentUser.id || currentUser.email || currentUser.username) : undefined;
+    deleteBudget(id, uid);
+    const updated = getSavedBudgets(uid);
     setSavedBudgets(updated);
     if (activeBudget.id === id) {
-      setActiveBudget(createInitialBudget(updated, companySettings));
+      setActiveBudget(createInitialBudget(updated, companySettings, uid));
     }
   };
 
   const handleUpdateStatus = (id: string, newStatus: BudgetStatus) => {
+    const uid = currentUser ? (currentUser.id || currentUser.email || currentUser.username) : undefined;
     const target = savedBudgets.find(b => b.id === id);
     if (target) {
       const updated = { ...target, status: newStatus };
-      saveBudget(updated);
-      setSavedBudgets(getSavedBudgets());
+      saveBudget(updated, uid);
+      setSavedBudgets(getSavedBudgets(uid));
       if (activeBudget.id === id) {
         setActiveBudget(updated);
       }
@@ -284,8 +211,9 @@ export const App: React.FC = () => {
   };
 
   const handleSaveSettings = (newSettings: CompanySettings, newCatalog: PriceCatalogItem[]) => {
-    saveCompanySettings(newSettings);
-    savePriceCatalog(newCatalog);
+    const uid = currentUser ? (currentUser.id || currentUser.email || currentUser.username) : undefined;
+    saveCompanySettings(newSettings, uid);
+    savePriceCatalog(newCatalog, uid);
     setCompanySettings(newSettings);
     setCatalog(newCatalog);
   };
