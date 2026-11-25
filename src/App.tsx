@@ -4,7 +4,10 @@ import { BudgetForm } from './components/BudgetForm';
 import { BudgetHistory } from './components/BudgetHistory';
 import { BudgetPreviewModal } from './components/BudgetPreviewModal';
 import { PriceCatalogModal } from './components/PriceCatalogModal';
+import { LoginView } from './components/LoginView';
 import { Budget, BudgetStatus, CompanySettings, PriceCatalogItem } from './types/budget';
+import { AuthUser } from './types/auth';
+import { getCurrentSession, logoutUser } from './utils/auth';
 import { 
   getCompanySettings, 
   saveCompanySettings, 
@@ -18,6 +21,7 @@ import {
 import { calculateSoilVolume } from './utils/soilCalculations';
 
 export const App: React.FC = () => {
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => getCurrentSession());
   const [currentView, setCurrentView] = useState<'editor' | 'history'>('editor');
   const [companySettings, setCompanySettings] = useState<CompanySettings>(getCompanySettings());
   const [catalog, setCatalog] = useState<PriceCatalogItem[]>(getPriceCatalog());
@@ -227,6 +231,10 @@ export const App: React.FC = () => {
     setCatalog(newCatalog);
   };
 
+  if (!currentUser) {
+    return <LoginView onLoginSuccess={(user) => setCurrentUser(user)} />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <Header
@@ -236,6 +244,11 @@ export const App: React.FC = () => {
         onOpenSettings={() => setIsSettingsOpen(true)}
         savedCount={savedBudgets.length}
         companySettings={companySettings}
+        currentUser={currentUser}
+        onLogout={() => {
+          logoutUser();
+          setCurrentUser(null);
+        }}
       />
 
       <main className="flex-1 pb-16 no-print">

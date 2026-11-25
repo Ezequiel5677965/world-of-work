@@ -1,6 +1,7 @@
 import React from 'react';
-import { Plus, History, Settings2, Sparkles, Truck } from 'lucide-react';
+import { Plus, History, Settings2, Sparkles, Truck, LogOut } from 'lucide-react';
 import { CompanySettings } from '../types/budget';
+import { AuthUser } from '../types/auth';
 
 interface HeaderProps {
   currentView: 'editor' | 'history';
@@ -9,6 +10,8 @@ interface HeaderProps {
   onOpenSettings: () => void;
   savedCount: number;
   companySettings: CompanySettings;
+  currentUser?: AuthUser | null;
+  onLogout?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -17,7 +20,9 @@ export const Header: React.FC<HeaderProps> = ({
   onNewBudget,
   onOpenSettings,
   savedCount,
-  companySettings
+  companySettings,
+  currentUser,
+  onLogout
 }) => {
   return (
     <header className="sticky top-0 z-30 bg-white border-b-2 border-slate-900 shadow-xs no-print w-full">
@@ -68,6 +73,16 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Settings2 className="w-4 h-4" />
           </button>
+
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              title={`Cerrar Sesión (${currentUser?.username || 'Usuario'})`}
+              className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-300 transition cursor-pointer"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
