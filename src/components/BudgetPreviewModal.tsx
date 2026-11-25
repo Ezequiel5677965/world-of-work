@@ -150,11 +150,11 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 bg-[#e1261c] inline-block shrink-0"></span>
                 <h1 className="text-lg sm:text-2xl font-black text-slate-950 uppercase tracking-tight">
-                  {companySettings.companyName || 'MAQUINITA - MOVIMIENTO DE SUELO'}
+                  {companySettings.companyName || 'WORLD OF WORK'}
                 </h1>
               </div>
               <p className="text-[11px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider mt-0.5">
-                Movimiento de suelo • Excavaciones • Bobcat
+                Movimiento de suelo • Excavaciones • Equipos Viales
               </p>
               <div className="text-xs text-slate-600 mt-1.5 space-y-0.5">
                 {companySettings.phone && (
@@ -293,7 +293,7 @@ export const BudgetPreviewModal: React.FC<BudgetPreviewModalProps> = ({
               )}
             </div>
 
-            {/* Total general directo (Estilo Bobcat) */}
+            {/* Total general directo */}
             <div className="sm:col-span-5 border-2 border-slate-900 p-3.5 bg-slate-50 text-right font-mono">
               <span className="text-[11px] font-sans font-bold uppercase tracking-wider text-slate-600 block">
                 TOTAL PRESUPUESTO

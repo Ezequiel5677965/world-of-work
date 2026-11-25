@@ -115,7 +115,7 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
     const newItem: BudgetItem = {
       id: `item_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       category: 'personalizado',
-      name: 'Nuevo servicio / trabajo Bobcat',
+      name: 'Nuevo servicio / trabajo de obra',
       description: '',
       quantity: 1,
       unit: 'hs',
@@ -125,37 +125,43 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
     updateItems([...budget.items, newItem]);
   };
 
-  // Trasladar automáticamente los datos de la calculadora (Bobcat prioritaria)
+  // Trasladar automáticamente los datos de la calculadora (Minicargadora prioritaria)
   const handleApplySoilCalc = (calc: SoilCalculation) => {
     setBudget(prev => ({ ...prev, soilCalculation: calc }));
     const newItems: BudgetItem[] = [...budget.items];
 
-    // 1. Agregar Bobcat
-    const bobcatItem = catalog.find(c => c.id === 'bobcat_mini') || {
-      id: 'bobcat_mini',
+    // 1. Agregar Minicargadora
+    const miniItem = catalog.find(c => c.id === 'mini_cargadora' || c.id === 'bobcat_mini') || {
+      id: 'mini_cargadora',
       category: 'maquinaria' as const,
-      name: 'Minicargadora / Bobcat (por hora)',
+      name: 'Minicargadora frontal (por hora)',
       description: 'Nivelación ágil y desparrame',
       unit: 'hs' as const,
       defaultPrice: 38000
     };
 
-    const bobcatHours = calc.estimatedHoursBobcat > 0 ? calc.estimatedHoursBobcat : 4;
-    const existingBobcatIndex = newItems.findIndex(i => i.id === 'bobcat_mini' || i.name.toLowerCase().includes('bobcat'));
+    const calculatedHours = calc.estimatedHoursMini ?? calc.estimatedHoursBobcat ?? 0;
+    const miniHours = calculatedHours > 0 ? calculatedHours : 4;
+    const existingMiniIndex = newItems.findIndex(i => 
+      i.id === 'mini_cargadora' || 
+      i.id === 'bobcat_mini' || 
+      i.name.toLowerCase().includes('minicargadora') || 
+      i.name.toLowerCase().includes('bobcat')
+    );
     
-    if (existingBobcatIndex >= 0) {
-      newItems[existingBobcatIndex].quantity = bobcatHours;
-      newItems[existingBobcatIndex].total = bobcatHours * newItems[existingBobcatIndex].unitPrice;
+    if (existingMiniIndex >= 0) {
+      newItems[existingMiniIndex].quantity = miniHours;
+      newItems[existingMiniIndex].total = miniHours * newItems[existingMiniIndex].unitPrice;
     } else {
       newItems.push({
-        id: 'bobcat_mini',
+        id: 'mini_cargadora',
         category: 'maquinaria',
-        name: bobcatItem.name,
+        name: miniItem.name,
         description: `Trabajo de suelo estimado para ${calc.bankVolumeM3} m³`,
-        quantity: bobcatHours,
+        quantity: miniHours,
         unit: 'hs',
-        unitPrice: bobcatItem.defaultPrice,
-        total: bobcatHours * bobcatItem.defaultPrice
+        unitPrice: miniItem.defaultPrice,
+        total: miniHours * miniItem.defaultPrice
       });
     }
 
@@ -188,7 +194,7 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
         id: 'flete_carreton',
         category: 'transporte',
         name: carretonItem.name,
-        description: 'Traslado seguro de Bobcat a la obra',
+        description: 'Traslado seguro de maquinaria a la obra',
         quantity: 1,
         unit: 'flete',
         unitPrice: carretonItem.defaultPrice,
@@ -295,7 +301,7 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Ej. Desmonte y nivelación Bobcat"
+                  placeholder="Ej. Desmonte y nivelación con minicargadora"
                   value={budget.project.title}
                   onChange={(e) => setBudget({ ...budget, project: { ...budget.project, title: e.target.value } })}
                   className="w-full pl-7 pr-2.5 py-1.5 text-xs font-bold bg-white border border-slate-300 focus:outline-none focus:border-[#e1261c]"
@@ -343,10 +349,10 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
           </span>
           <div className="flex flex-wrap gap-1.5">
             {catalog.map(catItem => {
-              const isBobcat = catItem.id.includes('bobcat') || catItem.name.toLowerCase().includes('bobcat');
+              const isMini = catItem.id.includes('mini') || catItem.id.includes('bobcat') || catItem.name.toLowerCase().includes('minicargadora');
               // Nombres cortos para móvil
-              const shortName = isBobcat 
-                ? 'Bobcat (hs)' 
+              const shortName = isMini 
+                ? 'Minicargadora (hs)' 
                 : catItem.id.includes('carreton')
                 ? 'Flete Carretón'
                 : catItem.id.includes('retro')
@@ -365,14 +371,14 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
                   type="button"
                   onClick={() => handleAddCatalogItem(catItem)}
                   className={`px-2 py-1 text-xs font-bold transition flex items-center gap-1 cursor-pointer border ${
-                    isBobcat
+                    isMini
                       ? 'bg-[#e1261c] hover:bg-[#c81e15] text-white border-[#e1261c]'
                       : 'bg-white hover:bg-slate-100 text-slate-900 border-slate-300'
                   }`}
                 >
-                  <Plus className={`w-3 h-3 ${isBobcat ? 'text-white' : 'text-[#e1261c]'}`} />
+                  <Plus className={`w-3 h-3 ${isMini ? 'text-white' : 'text-[#e1261c]'}`} />
                   <span>{shortName}</span>
-                  <span className={`text-[10px] font-mono ${isBobcat ? 'text-red-100' : 'text-slate-500'}`}>
+                  <span className={`text-[10px] font-mono ${isMini ? 'text-red-100' : 'text-slate-500'}`}>
                     ${(catItem.defaultPrice).toLocaleString('es-AR')}
                   </span>
                 </button>
@@ -387,7 +393,7 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
             <Truck className="w-7 h-7 text-slate-400 mx-auto mb-1.5" />
             <p className="text-xs font-bold text-slate-700">No hay máquinas cargadas todavía</p>
             <p className="text-[11px] text-slate-500 mt-0.5">
-              Tocá el botón rojo "+ Bobcat" de arriba para agregarla.
+              Tocá el botón rojo "+ Minicargadora" de arriba para agregarla.
             </p>
           </div>
         ) : (
@@ -475,7 +481,7 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
         <h3 className="font-black text-slate-950 text-xs sm:text-sm uppercase tracking-tight pb-2 border-b-2 border-slate-900 flex justify-between items-center">
           <span>3. Cierre del Presupuesto</span>
           <span className="text-[9px] font-black uppercase bg-[#e1261c] text-white px-1.5 py-0.2">
-            Bobcat Suelo
+            World of Work
           </span>
         </h3>
 

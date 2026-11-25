@@ -1,4 +1,4 @@
-# 🚜 Maquinita - Sistema de Presupuestos para Movimiento de Suelo
+# 🚜 World of Work - Presupuestos para Movimiento de Suelo
 
 Un sistema intuitivo, rápido y profesional diseñado específicamente para empresas, contratistas y operadores de **movimiento de suelo, excavaciones y equipos viales**.
 
@@ -37,7 +37,7 @@ Tenés dos formas muy sencillas de abrir la aplicación:
 ### 2. 🚜 Carga Rápida de Recursos y Equipos
 * Botones de agregado con un clic para:
   * Retroexcavadora / Pala mixta (por hora).
-  * Minicargadora / Bobcat (por hora).
+  * Minicargadora frontal (por hora).
   * Flete carretón (traslado ida y vuelta de equipos).
   * Camiones volcadores y bateas.
   * Aporte de tosca de cantera y tierra negra (por m³).

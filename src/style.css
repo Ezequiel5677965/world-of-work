@@ -2,11 +2,11 @@
 
 @layer base {
   :root {
-    --bobcat-red: #e1261c;
-    --bobcat-red-dark: #b91c1c;
-    --bobcat-dark: #121214;
-    --bobcat-charcoal: #1c1c1f;
-    --bobcat-gray: #f4f4f6;
+    --brand-red: #e1261c;
+    --brand-red-dark: #b91c1c;
+    --brand-dark: #121214;
+    --brand-charcoal: #1c1c1f;
+    --brand-gray: #f4f4f6;
   }
 
   *, *::before, *::after {

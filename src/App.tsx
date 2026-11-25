@@ -68,9 +68,9 @@ export const App: React.FC = () => {
             total: 330000
           },
           {
-            id: 'bobcat_mini',
+            id: 'mini_cargadora',
             category: 'maquinaria',
-            name: 'Minicargadora / Bobcat (por hora)',
+            name: 'Minicargadora frontal (por hora)',
             description: 'Desparrame y perfilado fino de suelo',
             quantity: 8,
             unit: 'hs',

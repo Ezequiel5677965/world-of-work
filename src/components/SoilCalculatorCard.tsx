@@ -78,8 +78,8 @@ export const SoilCalculatorCard: React.FC<SoilCalculatorCardProps> = ({
           <div>
             <h3 className="font-black text-slate-950 text-xs sm:text-sm uppercase tracking-tight flex items-center gap-1.5">
               <span>Calculadora de Suelo</span>
-              <span className="text-[9px] font-black bg-[#e1261c] text-white px-1 py-0.2">
-                Bobcat
+              <span className="text-[9px] font-black bg-[#e1261c] text-white px-1.5 py-0.2">
+                VIAL
               </span>
             </h3>
             <p className="text-[10px] text-slate-500 font-semibold leading-tight">
@@ -290,7 +290,7 @@ export const SoilCalculatorCard: React.FC<SoilCalculatorCardProps> = ({
           </div>
         </div>
 
-        {/* Tarjeta de Resultados Bobcat Compacta */}
+        {/* Tarjeta de Resultados Compacta */}
         <div className="bg-slate-50 border-2 border-slate-900 p-2.5 space-y-2">
           <div className="flex justify-between items-center text-xs font-black border-b border-slate-300 pb-1.5">
             <span className="flex items-center gap-1 uppercase tracking-tight text-slate-900">
@@ -326,10 +326,10 @@ export const SoilCalculatorCard: React.FC<SoilCalculatorCardProps> = ({
           <div className="flex items-center justify-between p-1.5 bg-white border border-slate-300 text-xs">
             <div className="flex items-center gap-1 font-black text-slate-900">
               <Clock className="w-3.5 h-3.5 text-[#e1261c]" />
-              <span>Horas Bobcat sugeridas:</span>
+              <span>Horas Minicargadora:</span>
             </div>
             <span className="font-mono font-black text-[#e1261c]">
-              ~{currentCalc.estimatedHoursBobcat} hs
+              ~{currentCalc.estimatedHoursMini ?? currentCalc.estimatedHoursBobcat ?? 0} hs
             </span>
           </div>
 

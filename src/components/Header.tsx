@@ -21,7 +21,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   return (
     <header className="sticky top-0 z-30 bg-white border-b-2 border-slate-900 shadow-xs no-print w-full">
-      {/* Filete superior icónico Bobcat */}
+      {/* Filete superior de acento */}
       <div className="h-1 bg-[#e1261c] w-full"></div>
 
       {/* Fila 1: Logo y Botones Principales (Despejados y sin apretarse) */}
@@ -39,10 +39,10 @@ export const Header: React.FC<HeaderProps> = ({
           <div>
             <div className="flex items-center gap-1 leading-none">
               <span className="font-black text-sm tracking-tight text-slate-950 uppercase">
-                {companySettings.companyName || 'Maquinita'}
+                {companySettings.companyName || 'World of Work'}
               </span>
-              <span className="text-[9px] font-black uppercase bg-[#e1261c] text-white px-1 py-0.2">
-                Bobcat
+              <span className="text-[9px] font-black uppercase bg-[#e1261c] text-white px-1.5 py-0.2">
+                VIAL
               </span>
             </div>
             <p className="text-[9px] text-slate-500 font-semibold mt-0.5 leading-none">

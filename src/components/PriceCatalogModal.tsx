@@ -80,7 +80,7 @@ export const PriceCatalogModal: React.FC<PriceCatalogModalProps> = ({
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-xs flex items-start justify-center p-2 sm:p-6 no-print">
       <div className="bg-white max-w-3xl w-full border-2 border-slate-900 flex flex-col my-2 sm:my-6 max-h-[92vh] shadow-2xl">
         
-        {/* Cabecera Estilo Bobcat */}
+        {/* Cabecera */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b-2 border-slate-900 bg-slate-950 text-white">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 bg-[#e1261c] text-white">
@@ -91,7 +91,7 @@ export const PriceCatalogModal: React.FC<PriceCatalogModalProps> = ({
                 Tarifas & Datos de Empresa
               </h2>
               <p className="text-[10px] text-slate-400 font-mono">
-                Valores base por defecto para Bobcat y obras
+                Valores base por defecto para maquinaria y obras
               </p>
             </div>
           </div>
@@ -140,7 +140,7 @@ export const PriceCatalogModal: React.FC<PriceCatalogModalProps> = ({
                 if (itemsInCat.length === 0) return null;
 
                 const catTitles: Record<ItemCategory, string> = {
-                  maquinaria: '🚜 Maquinaria & Compactación (Bobcat / Equipos)',
+                  maquinaria: '🚜 Maquinaria & Compactación (Minicargadora / Equipos)',
                   transporte: '🚚 Camiones, Volquetes y Fletes en Carretón',
                   material: '⛰️ Áridos, Tosca y Relleno de Suelo',
                   mano_de_obra: '👷 Mano de Obra y Servicios Especializados',

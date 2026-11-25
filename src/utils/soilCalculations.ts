@@ -55,9 +55,9 @@ export function calculateSoilVolume(params: {
 
   // 6. Estimación de horas de trabajo
   // Rendimientos promedio estándar en movimiento de suelo:
-  // Minicargadora (Bobcat): ~8 a 12 m³/hora para desmonte y acopio liviano
+  // Minicargadora frontal: ~8 a 12 m³/hora para desmonte y acopio liviano
   // Retroexcavadora: ~20 a 30 m³/hora para excavación y carga
-  const estimatedHoursBobcat = bankVolumeM3 > 0 ? Number(Math.max(2, Math.ceil(bankVolumeM3 / 10)).toFixed(1)) : 0;
+  const estimatedHoursMini = bankVolumeM3 > 0 ? Number(Math.max(2, Math.ceil(bankVolumeM3 / 10)).toFixed(1)) : 0;
   const estimatedHoursRetro = bankVolumeM3 > 0 ? Number(Math.max(3, Math.ceil(bankVolumeM3 / 22)).toFixed(1)) : 0;
 
   return {
@@ -75,7 +75,8 @@ export function calculateSoilVolume(params: {
     bankVolumeM3,
     looseVolumeM3,
     truckTrips,
-    estimatedHoursBobcat,
+    estimatedHoursMini,
+    estimatedHoursBobcat: estimatedHoursMini,
     estimatedHoursRetro
   };
 }

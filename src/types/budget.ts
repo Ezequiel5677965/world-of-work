@@ -30,7 +30,8 @@ export interface SoilCalculation {
   bankVolumeM3: number; // Volumen en banco (compacto)
   looseVolumeM3: number; // Volumen esponjado (suelto para transporte)
   truckTrips: number; // Cantidad de viajes de camión
-  estimatedHoursBobcat: number; // Estimación horas minicargadora
+  estimatedHoursBobcat?: number; // Compatibilidad retroactiva
+  estimatedHoursMini: number; // Estimación horas minicargadora
   estimatedHoursRetro: number; // Estimación horas retroexcavadora
 }
 

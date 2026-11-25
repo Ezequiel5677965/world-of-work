@@ -34,11 +34,11 @@ export const SOIL_TYPES: SoilTypeInfo[] = [
 ];
 
 export const DEFAULT_CATALOG: PriceCatalogItem[] = [
-  // MAQUINARIA (BOBCAT COMO PRINCIPAL)
+  // MAQUINARIA
   {
-    id: 'bobcat_mini',
+    id: 'mini_cargadora',
     category: 'maquinaria',
-    name: 'Minicargadora / Bobcat (por hora)',
+    name: 'Minicargadora frontal (por hora)',
     unit: 'hs',
     defaultPrice: 38000,
     description: 'Nivelación ágil, espacios reducidos, desparrame de tierra y tosca.'
@@ -148,14 +148,14 @@ export const DEFAULT_CATALOG: PriceCatalogItem[] = [
 ];
 
 export const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
-  companyName: 'Maquinita & Movimiento de Suelo',
+  companyName: 'World of Work',
   ownerName: 'Ezequiel',
   phone: '11 5555-5555',
-  email: 'presupuestos@maquinita.com',
+  email: 'contacto@worldofwork.com',
   address: 'Ruta / Base Operativa',
   city: 'Buenos Aires',
   cuit: '20-XXXXXXXX-X',
-  bankInfo: 'Alias: maquinita.suelo / CBU: 00000031000...',
+  bankInfo: 'Alias: worldofwork.suelo / CBU: 00000031000...',
   currency: '$',
   defaultMargin: 20, // 20% margen ganancia
   defaultValidityDays: 15
