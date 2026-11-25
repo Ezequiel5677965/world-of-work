@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, History, Settings2, Sparkles, Truck, LogOut } from 'lucide-react';
+import { Plus, History, Settings2, Sparkles, Truck, LogOut, Cloud } from 'lucide-react';
 import { CompanySettings } from '../types/budget';
 import { AuthUser } from '../types/auth';
 
@@ -12,6 +12,8 @@ interface HeaderProps {
   companySettings: CompanySettings;
   currentUser?: AuthUser | null;
   onLogout?: () => void;
+  onSync?: () => void;
+  isSyncing?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -22,7 +24,9 @@ export const Header: React.FC<HeaderProps> = ({
   savedCount,
   companySettings,
   currentUser,
-  onLogout
+  onLogout,
+  onSync,
+  isSyncing
 }) => {
   return (
     <header className="sticky top-0 z-30 bg-white border-b-2 border-slate-900 shadow-xs no-print w-full">
@@ -65,6 +69,19 @@ export const Header: React.FC<HeaderProps> = ({
             <Plus className="w-3.5 h-3.5 stroke-[3]" />
             <span>Nuevo</span>
           </button>
+
+          {onSync && (
+            <button
+              onClick={onSync}
+              disabled={isSyncing}
+              title="Sincronizar con la nube (Supabase)"
+              className={`p-1.5 border border-slate-300 transition cursor-pointer ${
+                isSyncing ? 'text-amber-600 bg-amber-50 animate-spin' : 'text-slate-600 hover:text-emerald-600 hover:bg-emerald-50'
+              }`}
+            >
+              <Cloud className="w-4 h-4" />
+            </button>
+          )}
 
           <button
             onClick={onOpenSettings}

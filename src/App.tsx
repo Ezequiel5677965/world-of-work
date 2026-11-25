@@ -19,6 +19,7 @@ import {
   generateNextBudgetCode 
 } from './utils/storage';
 import { calculateSoilVolume } from './utils/soilCalculations';
+import { syncAllBudgets } from './utils/supabaseSync';
 
 export const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => getCurrentSession());
@@ -29,6 +30,30 @@ export const App: React.FC = () => {
   const [activeBudget, setActiveBudget] = useState<Budget>(() => createInitialBudget(savedBudgets, companySettings));
   const [previewBudget, setPreviewBudget] = useState<Budget | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+
+  // Sincronización automática con Supabase al iniciar sesión
+  useEffect(() => {
+    if (currentUser) {
+      syncAllBudgets().then(res => {
+        if (res.success) {
+          setSavedBudgets(getSavedBudgets());
+        }
+      });
+    }
+  }, [currentUser]);
+
+  const handleManualSync = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await syncAllBudgets();
+      if (res.success) {
+        setSavedBudgets(getSavedBudgets());
+      }
+    } finally {
+      setTimeout(() => setIsSyncing(false), 500);
+    }
+  };
 
   // Inicializar presupuesto de ejemplo si no hay ninguno
   useEffect(() => {
@@ -249,6 +274,8 @@ export const App: React.FC = () => {
           logoutUser();
           setCurrentUser(null);
         }}
+        onSync={handleManualSync}
+        isSyncing={isSyncing}
       />
 
       <main className="flex-1 pb-16 no-print">

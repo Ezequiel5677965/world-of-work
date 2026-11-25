@@ -1,5 +1,6 @@
 import { Budget, CompanySettings, PriceCatalogItem } from '../types/budget';
 import { DEFAULT_CATALOG, DEFAULT_COMPANY_SETTINGS } from '../data/defaultCatalog';
+import { syncBudgetToRemote, deleteBudgetFromRemote } from './supabaseSync';
 
 const STORAGE_KEYS = {
   BUDGETS: 'maquinita_budgets_v1',
@@ -30,6 +31,9 @@ export function saveBudget(budget: Budget): void {
       list.unshift(budget); // nuevo al principio
     }
     localStorage.setItem(STORAGE_KEYS.BUDGETS, JSON.stringify(list));
+
+    // Sincronización transparente con Supabase en segundo plano
+    syncBudgetToRemote(budget).catch(() => {});
   } catch (e) {
     console.error('Error guardando presupuesto', e);
   }
@@ -39,6 +43,9 @@ export function deleteBudget(id: string): void {
   try {
     const list = getSavedBudgets().filter(b => b.id !== id);
     localStorage.setItem(STORAGE_KEYS.BUDGETS, JSON.stringify(list));
+
+    // Eliminar en Supabase en segundo plano
+    deleteBudgetFromRemote(id).catch(() => {});
   } catch (e) {
     console.error('Error eliminando presupuesto', e);
   }
