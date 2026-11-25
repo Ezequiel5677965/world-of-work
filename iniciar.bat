@@ -1,8 +1,8 @@
 @echo off
-title Maquinita - Movimiento de Suelo
+title World of Work - Presupuestos de Suelo
 cd /d "%~dp0"
 echo =========================================================
-echo   Maquinita - Sistema de Presupuestos de Suelo
+echo   World of Work - Presupuestos de Suelo
 echo =========================================================
 echo.
 echo Iniciando el servidor...
